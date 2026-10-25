@@ -8,44 +8,42 @@ interface Props {
   color: string;
 }
 
-const ROW = 44;
-const LOOP_MS = 10000;
+const SHOW_MS = 2200;
 
 /**
- * Search "Mango" → "Milk" → … scrolling upwards without pause, one loop every 10 s
- * (the site's `infiniteScroll 10s linear infinite` over the list repeated twice).
+ * Search "Mango" → "Milk" → …: one word at a time, fading in place inside the search box.
+ * (A scrolling list relied on the box clipping its overflow, which Android didn't always do, so words
+ * showed above and below the box.)
  */
 export function RollingSearchHint({ words, color }: Props) {
-  const [offset] = useState(() => new Animated.Value(0));
-  const distance = words.length * ROW;
+  const [index, setIndex] = useState(0);
+  const [progress] = useState(() => new Animated.Value(1));
 
   useEffect(() => {
-    if (distance === 0) return;
-    offset.setValue(0);
-    const loop = Animated.loop(
-      Animated.timing(offset, { toValue: -distance, duration: LOOP_MS, easing: Easing.linear, useNativeDriver: true }),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [distance, offset]);
+    if (words.length < 2) return;
+    const timer = setInterval(() => {
+      Animated.timing(progress, { toValue: 0, duration: 180, easing: Easing.in(Easing.ease), useNativeDriver: true }).start(() => {
+        setIndex((i) => (i + 1) % words.length);
+        Animated.timing(progress, { toValue: 1, duration: 220, easing: Easing.out(Easing.ease), useNativeDriver: true }).start();
+      });
+    }, SHOW_MS);
+    return () => clearInterval(timer);
+  }, [words.length, progress]);
 
+  const word = words[index % Math.max(1, words.length)] ?? '';
   return (
     <View style={styles.window} pointerEvents="none">
-      <Animated.View style={{ transform: [{ translateY: offset }] }}>
-        {[...words, ...words].map((word, i) => (
-          // The list is a fixed repeat of the same words, so the index is a stable key.
-          <View key={`${word}-${i}`} style={styles.row}>
-            <AppText variant="searchPlaceholder" style={{ color }} numberOfLines={1}>
-              {strings.home.searchHint(word)}
-            </AppText>
-          </View>
-        ))}
+      <Animated.View
+        style={{ opacity: progress }}
+      >
+        <AppText variant="searchPlaceholder" style={{ color }} numberOfLines={1}>
+          {strings.home.searchHint(word)}
+        </AppText>
       </Animated.View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  window: { position: 'absolute', left: 56, right: 56, top: 0, bottom: 0, overflow: 'hidden' },
-  row: { height: ROW, justifyContent: 'center' },
+  window: { position: 'absolute', left: 56, right: 56, top: 0, bottom: 0, justifyContent: 'center', overflow: 'hidden' },
 });

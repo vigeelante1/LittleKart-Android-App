@@ -1,29 +1,34 @@
 import type { Order } from '@littlekart/shared';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 import { AppText } from '@/components/AppText';
-import { MuiDialog } from '@/components/MuiDialog';
+import { DialogBadge } from '@/components/dialog/DialogBadge';
+import { DialogShell } from '@/components/dialog/DialogShell';
+import { colors } from '@/theme';
 import { strings } from '@/strings';
 
-/** "Order Items" (from the card's ⋮ menu → Share Order Items): one line per item, "Name × qty". */
+/** "Order Items" (from the card's ⋮ menu → Share Order Items): one line per item, "Name × qty" (D-83 design). */
 export function OrderItemsDialog({ order, onClose }: { order: Order | null; onClose: () => void }) {
   return (
-    <MuiDialog visible={order !== null} onClose={onClose}>
-      <View style={styles.title}>
-        <AppText variant="muiH6Dialog">{strings.orders.orderItems}</AppText>
-      </View>
-      <ScrollView contentContainerStyle={styles.content}>
+    <DialogShell visible={order !== null} onClose={onClose}>
+      <DialogBadge icon="receipt-long" tone="success" />
+      <AppText variant="muiH6Dialog" align="center" style={styles.title}>
+        {strings.orders.orderItems}
+      </AppText>
+      <ScrollView style={styles.list} contentContainerStyle={styles.content}>
         {order?.items.map((item, i) => (
-          <AppText key={`${item.productId}-${i}`} variant="productName" numberOfLines={2} style={styles.line}>
+          <AppText key={`${item.productId}-${i}`} variant="productName" numberOfLines={2} style={[styles.line, i > 0 && styles.lineBorder]}>
             {strings.orders.itemTimes(item.name, item.qty)}
           </AppText>
         ))}
       </ScrollView>
-    </MuiDialog>
+    </DialogShell>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { paddingVertical: 16, paddingHorizontal: 24 },
-  content: { paddingHorizontal: 24, paddingBottom: 20 },
-  line: { marginTop: 4, minHeight: 34.56 },
+  title: { marginBottom: 12 },
+  list: { alignSelf: 'stretch', borderRadius: 12, backgroundColor: colors.thumbBg },
+  content: { paddingHorizontal: 14, paddingVertical: 4 },
+  line: { paddingVertical: 8 },
+  lineBorder: { borderTopWidth: 1, borderTopColor: colors.border },
 });

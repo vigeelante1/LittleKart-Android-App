@@ -87,3 +87,12 @@ Each item is resolved by checking littlekart.com, your phone, or the founder.
 
 ## Intentional differences from the live app (typo and alignment fixes, DECISIONS D-21 / D-31)
 Listed in `DECISIONS.md`. Each one is noted here again when the screen that shows it is built.
+
+## Iteration 2 (phone-test fixes and catalog), DECISIONS D-76 to D-81
+These are deliberate departures from the live app, not fidelity gaps:
+- **Bottom dock** (cart bar + tracking strip) replaces the live "View Cart" pill and floating tracking card (D-77).
+- **Order tracking** texts are centred and Back sits on its own row (D-76).
+- **Offer banners** are our own designs, not the live artwork (D-81).
+- **Catalog** is our own assortment (D-78, D-79); every product has a bundled image: 267 cleaned-up photos and 126 drawn cards (D-82).
+- **Pop-ups** use our own design (D-83) and **Login** is a pill button (D-84).
+- **Background removal** was done automatically and checked by eye at small size; a few cut-outs may have rough edges on a big screen. Tell me which ones and they can be switched to a drawn card.

@@ -20,9 +20,9 @@ export interface TextVariant {
 
 export const textVariants = {
   // Home header
-  greeting: { size: 14.4, weight: 600, color: 'headerText', letterSpacing: -0.072, lineHeight: 14.4 },
-  headline: { size: 20.16, weight: 800, color: 'headerText', letterSpacing: -0.4032, lineHeight: 21.77 },
-  headerAddress: { size: 15.2, weight: 500, color: 'headerText', letterSpacing: -0.0912, lineHeight: 18.24 },
+  greeting: { size: 14.4, weight: 600, color: 'headerText', letterSpacing: -0.072, lineHeight: 19 },
+  headline: { size: 20.16, weight: 800, color: 'headerText', letterSpacing: -0.4032, lineHeight: 25 },
+  headerAddress: { size: 14, weight: 500, color: 'headerText', letterSpacing: -0.0912, lineHeight: 19 },
   headerLogin: { size: 15.2, weight: 700, color: 'headerText', lineHeight: 22.8 },
   searchPlaceholder: { size: 16, weight: 500, color: 'searchPlaceholder' },
 
@@ -57,9 +57,9 @@ export const textVariants = {
   cardWeight: { size: 11.52, weight: 500, color: 'textMuted', letterSpacing: -0.046, lineHeight: 13.8 },
   addLabel: { size: 14.4, weight: 600, color: 'addGreenText', uppercase: true },
   addLabelWithOptions: { size: 15.68, weight: 600, color: 'addGreenText', letterSpacing: 0.1, lineHeight: 15.7, uppercase: true },
-  addOptions: { size: 12, weight: 600, color: 'textSlateMuted', lineHeight: 12 },
+  addOptions: { size: 12, weight: 600, color: 'textSlateMuted', lineHeight: 14.4 },
   stepperCount: { size: 14.4, weight: 700, color: 'text' },
-  ribbonPercent: { size: 8.64, weight: 900, color: 'white', lineHeight: 8.64, uppercase: true },
+  ribbonPercent: { size: 8.64, weight: 900, color: 'white', lineHeight: 10.4, uppercase: true },
   ribbonOff: { size: 7.68, weight: 900, color: 'white', lineHeight: 8.1, uppercase: true },
 
   // Screen headers
@@ -70,6 +70,7 @@ export const textVariants = {
   railLabel: { size: 11.2, weight: 500, color: 'textLabel', letterSpacing: -0.112, lineHeight: 12.9 },
   railLabelSelected: { size: 11.2, weight: 700, color: 'text', letterSpacing: -0.112, lineHeight: 12.9 },
   filterChip: { size: 13, weight: 600, color: 'textBody' },
+  categorySearchHint: { size: 16, weight: 400, color: 'inputPlaceholder', lineHeight: 22 },
 
   // Cart (littlekart.com /cart, M5)
   cartPageTitle: { size: 21.6, weight: 800, color: 'text', letterSpacing: -0.432, lineHeight: 28.8 },
@@ -79,7 +80,7 @@ export const textVariants = {
   cartPrice: { size: 14, weight: 700, color: 'primaryDark', lineHeight: 21 },
   cartStockMessage: { size: 14, weight: 500, color: 'accent', lineHeight: 21 },
   cartOutOfStock: { size: 12, weight: 700, color: 'muiError', lineHeight: 18 },
-  cartStepperCount: { size: 12.16, weight: 800, color: 'white', lineHeight: 12.16 },
+  cartStepperCount: { size: 12.16, weight: 800, color: 'white', lineHeight: 14.6 },
   remove: { size: 11, weight: 700, color: 'error', lineHeight: 19.25 },
   removeUnavailable: { size: 12, weight: 700, color: 'cssRed', lineHeight: 21 },
   recTitle: { size: 20, weight: 800, color: 'textSlate', lineHeight: 22 },
@@ -255,7 +256,7 @@ export const textVariants = {
   heroStatus: { size: 18.56, weight: 700, color: 'heroEta', lineHeight: 22.27 },
   heroArriving: { size: 13.6, weight: 700, color: 'primary', letterSpacing: 0.272, lineHeight: 21 },
   heroOrderId: { size: 13.6, weight: 600, color: 'textSlate', letterSpacing: 0.272, lineHeight: 21 },
-  otpLabel: { size: 9.92, weight: 700, color: 'otpLabel', lineHeight: 9.92 },
+  otpLabel: { size: 9.92, weight: 700, color: 'otpLabel', lineHeight: 12 },
   otpValue: { size: 11.52, weight: 800, color: 'otpValue', letterSpacing: 0.69, lineHeight: 17.3 },
   statusKicker: { size: 11.2, weight: 700, color: 'textSlateMuted', letterSpacing: 0.9, lineHeight: 13.44, uppercase: true },
   statusValue: { size: 16.8, weight: 800, color: 'textSlate', lineHeight: 21.84 },
@@ -286,10 +287,27 @@ export const textVariants = {
   supportNumber: { size: 17.6, weight: 800, color: 'text', letterSpacing: 0.4, lineHeight: 27.3 },
   muiTextButton: { size: 14, weight: 700, color: 'brightGreen', lineHeight: 24.5 },
 
+  // Bottom dock (iteration 2)
+  dockItems: { size: 14, weight: 700, color: 'white', lineHeight: 18 },
+  dockTotal: { size: 13, weight: 600, color: 'white', lineHeight: 17 },
+  dockAction: { size: 15, weight: 700, color: 'white', lineHeight: 20 },
+  dockEta: { size: 14, weight: 700, color: 'text', lineHeight: 18 },
+  dockOtp: { size: 12, weight: 500, color: 'textSlateMuted', lineHeight: 16 },
+  dockOtpValue: { size: 12, weight: 800, color: 'otpValue', letterSpacing: 0.6, lineHeight: 16 },
+  dockTrack: { size: 14, weight: 700, color: 'primary', lineHeight: 18 },
+
+  // Home offer banners (iteration 2)
+  bannerKicker: { size: 11, weight: 800, color: 'white', letterSpacing: 0.8, lineHeight: 14, uppercase: true },
+  bannerTitle: { size: 26, weight: 800, color: 'white', letterSpacing: -0.5, lineHeight: 30 },
+  bannerSub: { size: 13.5, weight: 500, color: 'white', lineHeight: 18 },
+  // Pop-ups (iteration 2)
+  dialogCount: { size: 11, weight: 800, color: 'white', lineHeight: 14 },
+  bannerCta: { size: 13.5, weight: 800, color: 'bannerCtaText', lineHeight: 18 },
+
   // Floating tracking card
   floatTitle: { size: 14.4, weight: 700, color: 'white', lineHeight: 22.3 },
   floatSub: { size: 10.88, weight: 400, color: 'white', lineHeight: 13.06 },
-  floatOtpLabel: { size: 9.6, weight: 600, color: 'white', lineHeight: 9.6 },
+  floatOtpLabel: { size: 9.6, weight: 600, color: 'white', lineHeight: 11.6 },
   floatOtpValue: { size: 11.52, weight: 800, color: 'otpValue', letterSpacing: 0.69, lineHeight: 17.3 },
 
   // My Orders and order details
@@ -313,7 +331,7 @@ export const textVariants = {
   muiBody2Semi: { size: 14, weight: 600, color: 'text', lineHeight: 21 },
 
   // Store-closed sign (littlekart.com lk-store-closed-tag, phone layout)
-  closedSorry: { size: 24, weight: 700, color: 'white', lineHeight: 24, script: true },
+  closedSorry: { size: 24, weight: 700, color: 'white', lineHeight: 30, script: true },
   closedWere: { size: 15, weight: 600, color: 'white', letterSpacing: 0.3, lineHeight: 22.5 },
   closedWord: { size: 24.8, weight: 800, color: 'white', letterSpacing: 1.984, lineHeight: 37.2, uppercase: true },
   closedBack: { size: 13, weight: 600, color: 'white', letterSpacing: 0.325, lineHeight: 17.55 },

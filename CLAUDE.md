@@ -4,7 +4,7 @@
 **Then look at the images** in `reference/` and at **littlekart.com** (same app as the Android app, DECISIONS D-20) for the screens the milestone covers.
 
 ## Mission
-Rebuild the live LittleKart Android app so it looks and behaves the same. No redesign, no extra features, no "better" spacing. Iteration 1 is the exact replica; improvements come only in later iterations, when asked (D-01).
+Rebuild the live LittleKart Android app so it looks and behaves the same. Iteration 1 (the exact replica) is finished. **Iteration 2 is under way (D-76):** fixes and improvements the owner asks for may differ from the live app; record each one in DECISIONS.md and FIDELITY_NOTES.md. Don't add anything not asked for.
 Source of truth, in order: littlekart.com's computed styles and behavior → the screenshots → ask.
 
 ## Fidelity rules

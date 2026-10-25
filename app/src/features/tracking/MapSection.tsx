@@ -1,4 +1,4 @@
-import { arrivingIn, statusLabel, type Order } from '@littlekart/shared';
+import { statusLabel, type Order } from '@littlekart/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
@@ -8,12 +8,13 @@ import { TrackingMap } from './TrackingMap';
 
 interface Props {
   order: Order;
-  minutes: number;
+  /** "Arriving in 12 minutes" or "Arriving shortly". */
+  eta: string;
   store: { lat: number; lng: number } | null;
 }
 
 /** "ORDER STATUS" box, "LIVE MAP · Updates live" and the map. */
-export function MapSection({ order, minutes, store }: Props) {
+export function MapSection({ order, eta, store }: Props) {
   return (
     <View style={styles.section}>
       <LinearGradient
@@ -23,10 +24,10 @@ export function MapSection({ order, minutes, store }: Props) {
         style={styles.status}
         accessibilityRole="summary"
       >
-        <AppText variant="statusKicker">{strings.tracking.statusKicker}</AppText>
-        <AppText variant="statusValue">{statusLabel(order.status)}</AppText>
-        <AppText variant="statusEta" style={styles.eta}>
-          {arrivingIn(minutes)}
+        <AppText variant="statusKicker" align="center">{strings.tracking.statusKicker}</AppText>
+        <AppText variant="statusValue" align="center">{statusLabel(order.status)}</AppText>
+        <AppText variant="statusEta" align="center" style={styles.eta}>
+          {eta}
         </AppText>
       </LinearGradient>
       <View style={styles.header}>

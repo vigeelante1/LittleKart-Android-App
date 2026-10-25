@@ -36,6 +36,7 @@ import { useCartProducts } from '@/hooks/useCartProducts';
 import { useConfig } from '@/hooks/useConfig';
 import { useNearestStore } from '@/hooks/useNearestStore';
 import { useStoreClosed } from '@/hooks/useStoreClosed';
+import { DOCK_GAP, TRACKING_STRIP_HEIGHT, useDock } from '@/features/dock/useDock';
 import { StoreClosedRibbon } from '@/components/StoreClosedRibbon';
 import { useAuthStore, useCartStore, useCheckoutStore, useLocationStore } from '@/store';
 import { colors } from '@/theme';
@@ -86,6 +87,7 @@ export default function CartScreen() {
   const { nearest, loading: checkingStore } = useNearestStore();
   const startCheckout = useCheckoutStore((s) => s.start);
   const closedStore = useStoreClosed();
+  const dock = useDock();
   const productIds = useMemo(() => items.map((i) => i.product.id), [items]);
   const recommendations = useRecommendations(productIds);
   const hideAlert = useCallback(() => setAlert(null), []);
@@ -135,7 +137,9 @@ export default function CartScreen() {
   const empty = items.length === 0;
   const blocked = cart.outOfStockCount > 0;
   const buttonLabel = cart.allUnavailable ? strings.cart.cannotProceed : blocked ? strings.cart.removeOutOfStock : strings.cart.proceedToPay;
-  const barSpace = empty ? 16 : (signedIn ? BAR_SPACE.signedIn : BAR_SPACE.guest) + insets.bottom;
+  // The order-tracking strip sits on top of the bottom bar while an order is on its way.
+  const stripSpace = dock.order ? TRACKING_STRIP_HEIGHT + DOCK_GAP : 0;
+  const barSpace = (empty ? 16 + insets.bottom : (signedIn ? BAR_SPACE.signedIn : BAR_SPACE.guest) + insets.bottom) + stripSpace;
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>

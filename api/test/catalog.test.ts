@@ -27,7 +27,9 @@ describe('catalog API', () => {
     const subs = (await app.inject({ method: 'GET', url: '/tiles/dairy-bread-eggs/subcategories' })).json() as { id: string; name: string }[];
     expect(subs).toEqual([expect.objectContaining({ id: 'dairy-bread-eggs', name: 'Dairy, Bread & Eggs' })]);
     const items = (await app.inject({ method: 'GET', url: '/subcategories/dairy-bread-eggs/products' })).json() as { id: string }[];
-    expect(items.map((p) => p.id)).toEqual(['sneha-brown-eggs', 'amul-butter', 'heritage-curd']);
+    // The live three are still listed, among the iteration-2 assortment (photos first, brands grouped).
+    expect(items.map((p) => p.id)).toEqual(expect.arrayContaining(['sneha-brown-eggs', 'amul-butter', 'heritage-curd']));
+    expect(items.length).toBeGreaterThan(3);
     const unknown = (await app.inject({ method: 'GET', url: '/tiles/nope/subcategories' })).json();
     expect(unknown).toEqual([]);
   });

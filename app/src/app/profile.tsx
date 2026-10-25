@@ -11,10 +11,12 @@ import { repos } from '@/services';
 import { useAuthStore, useTrackingStore } from '@/store';
 import { colors, hairline, shadows } from '@/theme';
 import { strings } from '@/strings';
+import { useDock } from '@/features/dock/useDock';
 
 /** Profile (littlekart.com /profile, phone layout; DESIGN_SPEC S15). */
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const dockSpace = useDock().space;
   const user = useAuthStore((s) => s.user);
   const signOut = useAuthStore((s) => s.signOut);
   const clearTracking = useTrackingStore((s) => s.setActive);
@@ -48,7 +50,7 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.page}>
         <ProfileHeader title={strings.profile.title} onBack={() => router.navigate('/')} />
-        <ScrollView contentContainerStyle={{ paddingBottom: 8 + insets.bottom }} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={{ paddingBottom: 8 + insets.bottom + dockSpace }} showsVerticalScrollIndicator={false}>
           <LinearGradient
             colors={colors.profileHeroGradient}
             locations={[0, 0.45, 1]}

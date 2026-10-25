@@ -3,6 +3,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { FlatList, Pressable, StyleSheet, View, type NativeScrollEvent, type NativeSyntheticEvent } from 'react-native';
 import { ProductImage } from '@/components/ProductImage';
 import { colors, shadows } from '@/theme';
+import { bannerDesigns } from './bannerDesigns';
+import { PromoBanner } from './PromoBanner';
 
 interface Props {
   banners: readonly Banner[];
@@ -89,13 +91,18 @@ export function BannerCarousel({ banners, width, onPress }: Props) {
         maxToRenderPerBatch={3}
         renderItem={({ item, index }) => {
           const isActive = index === active;
+          const design = bannerDesigns[item.banner.id];
           return (
             <View style={[styles.cell, { width: interval }]}>
               <Pressable
                 onPress={() => onPress?.(item.banner)}
                 style={[styles.slide, { width: slideWidth, height: isActive ? HEIGHT : SIDE_HEIGHT }]}
               >
-                <ProductImage uri={item.banner.imageUrl} contentFit="cover" style={styles.image} />
+                {design ? (
+                  <PromoBanner design={design} compact={!isActive} />
+                ) : (
+                  <ProductImage uri={item.banner.imageUrl} contentFit="cover" style={styles.image} />
+                )}
               </Pressable>
             </View>
           );

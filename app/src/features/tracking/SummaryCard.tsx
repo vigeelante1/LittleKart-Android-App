@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { arrivingIn, type Order } from '@littlekart/shared';
+import { type Order } from '@littlekart/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
@@ -10,12 +10,13 @@ import { TrackingCard } from './TrackingCard';
 
 interface Props {
   order: Order;
-  minutes: number;
+  /** "Arriving in 12 minutes" or "Arriving shortly". */
+  eta: string;
   onPress: () => void;
 }
 
 /** "Order summary" card: status pill, up to three item pictures, counts and "Open summary". */
-export function SummaryCard({ order, minutes, onPress }: Props) {
+export function SummaryCard({ order, eta, onPress }: Props) {
   const shown = order.items.slice(0, 3);
   const more = Math.max(0, order.items.length - shown.length);
   const qty = order.items.reduce((sum, i) => sum + i.qty, 0);
@@ -31,7 +32,7 @@ export function SummaryCard({ order, minutes, onPress }: Props) {
         <View style={styles.right}>
           <View style={styles.pill}>
             <AppText variant="summaryPill" numberOfLines={1}>
-              {arrivingIn(minutes)}
+              {eta}
             </AppText>
           </View>
           <MaterialIcons name="chevron-right" size={22} color={colors.dialogClose} />

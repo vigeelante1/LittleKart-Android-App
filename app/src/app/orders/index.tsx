@@ -7,14 +7,16 @@ import { MyOrdersList } from '@/features/orders/MyOrdersList';
 import { useAuthStore } from '@/store';
 import { colors } from '@/theme';
 import { strings } from '@/strings';
+import { useDock } from '@/features/dock/useDock';
 
 /** My Orders on its own page (littlekart.com /orders, reached from an order's details). */
 export default function OrdersScreen() {
   const user = useAuthStore((s) => s.user);
+  const dockSpace = useDock().space;
   if (!user) return <Redirect href="/login" />;
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.page}>
+      <ScrollView contentContainerStyle={[styles.page, { paddingBottom: 24 + dockSpace }]}>
         <View style={styles.header}>
           <BackPill onPress={() => router.navigate('/')} />
           <AppText variant="muiH6Bold">{strings.orders.title}</AppText>

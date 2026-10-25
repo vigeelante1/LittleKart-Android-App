@@ -2,23 +2,98 @@
 // Used by the app's sample-data mode and by the API, so both always show the same catalog.
 // "asset:<role>" images are bundled placeholders in the app until the founder provides real images (D-24).
 import type { Banner, Category, Product, Section, SubCategory, Tile } from '../types';
+import { assortment } from './assortment';
+import { productImage, withImages } from './images';
 
 const CAT = 'asset:category';
+
+/** Iteration 2: tiles, sub-categories and strip icons show the photo of one of their products (DECISIONS D-80). */
+const iconProduct: Record<string, string> = {
+  'flowers': 'marigold-garland',
+  'pooja-store': 'deepam-oil',
+  'fresh-meat-fish': 'chicken-curry-skin',
+  'restaurants': 'res-chicken-biryani',
+  'sweets': 'almond-house-kaju',
+  'homemade-batters': 'id-idli-batter',
+  'home-made-snacks-pickles': 'amma-murukulu',
+  'veggies-fruits': 'tomato',
+  'dairy-bread-eggs': 'amul-butter',
+  'pet-food': 'pedigree-adult',
+  'oil-ghee': 'freedom-sunflower',
+  'atta-dal-rice': 'daawat-basmati',
+  'cereals-breakfast': 'kelloggs-cornflakes',
+  'noodles-pasta': 'maggi-masala',
+  'tea-coffee': 'red-label',
+  'spices-masalas': 'everest-garam',
+  'dry-fruits': 'cashew-w320',
+  'frozen-food': 'mccain-fries',
+  'household-essentials': 'harpic',
+  'cool-drinks': 'thums-up',
+  'juices': 'real-guava',
+  'ice-cream-desserts': 'kwality-magnum',
+  'chips': 'lays-magic-masala',
+  'namkeens': 'haldiram-aloo-bhujia',
+  'chocolates': 'dairy-milk',
+  'snack-sweets': 'chikki-peanut',
+  'sauces-spreads': 'nutella',
+  'biscuits-cookies': 'good-day-cashew',
+  'protein-bar': 'yoga-bar-protein',
+  'paan-corner': 'saunf-mix',
+  'stationery': 'classmate-long-book',
+  'print-zone': 'print-colour',
+  'sports': 'kashmir-willow-bat',
+  'tissues-disposable': 'origami-tissue',
+  'electronics': 'philips-led-9w',
+  'decoration-kits': 'diyas-clay',
+  'crackers': 'sparklers',
+  'sexual-wellness': 'durex-extra-thin',
+  'adult-diapers': 'friends-adult-m',
+  'cold-cough-fever': 'vicks-vaporub',
+  'first-aid': 'band-aid',
+  'gut-care': 'eno-lemon',
+  'hand-wash': 'dettol-handwash',
+  'medical-devices': 'pulse-oximeter',
+  'oral-care': 'closeup-red',
+  'baby-care': 'pampers-pants-m',
+  'bath-body': 'medimix-soap',
+  'feminine-hygiene': 'carefree-liners',
+  'fragrances': 'fogg-black',
+  'grooming': 'philips-trimmer',
+  'skin-care': 'himalaya-neem-face',
+  'chicken': 'chicken-curry-skin',
+  'mutton': 'mutton-boneless',
+  'fish': 'catla-fish',
+  'books-charts': 'classmate-long-book',
+  'pens-pencils': 'reynolds-045',
+  'stationery-items': 'kangaro-stapler',
+  'toys': 'funskool-ludo',
+  'umbrellas-raincoats': 'umbrella-3fold',
+  'gift-wrap': 'satin-ribbon',
+  'lunch-hydration': 'milton-bottle',
+  'pooja-flowers': 'marigold-garland',
+  'food-meat': 'chicken-curry-skin',
+  'groceries-kitchen': 'tomato',
+  'snacks-drinks': 'lays-magic-masala',
+  'stationery-sports': 'kashmir-willow-bat',
+  'health-wellness': 'vicks-vaporub',
+  'beauty-personal-care': 'ponds-cream',
+};
+const icon = (id: string): string => (iconProduct[id] ? productImage(iconProduct[id]) : CAT);
 const PRODUCT = 'asset:product';
 const BANNER = 'asset:banner';
 
 /** Top strip, in the live order. */
 export const categories: Category[] = [
-  { id: 'pooja-flowers', name: 'Pooja & Flowers', imageUrl: CAT, isNew: true },
-  { id: 'food-meat', name: 'Food & Meat', imageUrl: CAT },
-  { id: 'groceries-kitchen', name: 'Groceries & Kitchen', imageUrl: CAT },
-  { id: 'snacks-drinks', name: 'Snacks & Drinks', imageUrl: CAT },
-  { id: 'stationery-sports', name: 'Stationery & Sports', imageUrl: CAT },
-  { id: 'health-wellness', name: 'Health & Wellness', imageUrl: CAT },
-  { id: 'beauty-personal-care', name: 'Beauty & Personal Care', imageUrl: CAT },
+  { id: 'pooja-flowers', name: 'Pooja & Flowers', imageUrl: icon('pooja-flowers'), isNew: true },
+  { id: 'food-meat', name: 'Food & Meat', imageUrl: icon('food-meat') },
+  { id: 'groceries-kitchen', name: 'Groceries & Kitchen', imageUrl: icon('groceries-kitchen') },
+  { id: 'snacks-drinks', name: 'Snacks & Drinks', imageUrl: icon('snacks-drinks') },
+  { id: 'stationery-sports', name: 'Stationery & Sports', imageUrl: icon('stationery-sports') },
+  { id: 'health-wellness', name: 'Health & Wellness', imageUrl: icon('health-wellness') },
+  { id: 'beauty-personal-care', name: 'Beauty & Personal Care', imageUrl: icon('beauty-personal-care') },
 ];
 
-const tile = (id: string, label: string, isNew = false): Tile => ({ id, label, imageUrl: CAT, isNew, categoryId: id });
+const tile = (id: string, label: string, isNew = false): Tile => ({ id, label, imageUrl: icon(id), isNew, categoryId: id });
 
 /** Home sections, in the live order. Each tile opens the category list screen. */
 export const sections: Section[] = [
@@ -116,11 +191,13 @@ export const sections: Section[] = [
   },
 ];
 
+/** Home offer banners. The app draws its own design for each id (DECISIONS D-81); imageUrl is the fallback. */
 export const banners: Banner[] = [
-  { id: 'b-fresh-meat', imageUrl: BANNER },
-  { id: 'b-flowers', imageUrl: BANNER },
-  { id: 'b-sweets', imageUrl: BANNER },
-  { id: 'b-refer', imageUrl: BANNER },
+  { id: 'b-fresh-meat', imageUrl: BANNER, targetTileId: 'fresh-meat-fish' },
+  { id: 'b-diwali', imageUrl: BANNER, targetTileId: 'decoration-kits' },
+  { id: 'b-flowers', imageUrl: BANNER, targetTileId: 'flowers' },
+  { id: 'b-sweets', imageUrl: BANNER, targetTileId: 'sweets' },
+  { id: 'b-veggies', imageUrl: BANNER, targetTileId: 'veggies-fruits' },
 ];
 
 /** Rolling words in the home search placeholder, in the site's order. */
@@ -129,24 +206,24 @@ export const searchHints = ['Mango', 'Milk', 'Rice', 'Shampoo', 'IceCream', 'Spi
 /** Left-rail sub-categories for each tile. Only tiles seen in the screenshots are filled in. */
 export const subCategoriesByTile: Record<string, SubCategory[]> = {
   'fresh-meat-fish': [
-    { id: 'chicken', name: 'Chicken', imageUrl: CAT },
-    { id: 'mutton', name: 'Mutton', imageUrl: CAT },
-    { id: 'fish', name: 'Fish', imageUrl: CAT },
+    { id: 'chicken', name: 'Chicken', imageUrl: icon('chicken') },
+    { id: 'mutton', name: 'Mutton', imageUrl: icon('mutton') },
+    { id: 'fish', name: 'Fish', imageUrl: icon('fish') },
   ],
   stationery: [
-    { id: 'books-charts', name: 'Books & Charts', imageUrl: CAT },
-    { id: 'pens-pencils', name: 'Pens & Pencils', imageUrl: CAT },
-    { id: 'stationery-items', name: 'Stationery Items', imageUrl: CAT },
-    { id: 'toys', name: 'Toys', imageUrl: CAT },
-    { id: 'umbrellas-raincoats', name: 'Umbrellas & Raincoats', imageUrl: CAT },
-    { id: 'gift-wrap', name: 'Gift Wrap', imageUrl: CAT },
-    { id: 'lunch-hydration', name: 'Lunch & Hydration', imageUrl: CAT },
+    { id: 'books-charts', name: 'Books & Charts', imageUrl: icon('books-charts') },
+    { id: 'pens-pencils', name: 'Pens & Pencils', imageUrl: icon('pens-pencils') },
+    { id: 'stationery-items', name: 'Stationery Items', imageUrl: icon('stationery-items') },
+    { id: 'toys', name: 'Toys', imageUrl: icon('toys') },
+    { id: 'umbrellas-raincoats', name: 'Umbrellas & Raincoats', imageUrl: icon('umbrellas-raincoats') },
+    { id: 'gift-wrap', name: 'Gift Wrap', imageUrl: icon('gift-wrap') },
+    { id: 'lunch-hydration', name: 'Lunch & Hydration', imageUrl: icon('lunch-hydration') },
   ],
 };
 
 const v = (id: string, label: string, price: number, mrp?: number, stock = 50) => ({ id, label, price, mrp, stock });
 
-export const products: Product[] = [
+const replicaProducts: Product[] = [
   // Limited Time Deals (home)
   { id: 'fanta-orange', categoryId: 'cool-drinks', name: 'Fanta Orange Flavoured | ఫాంటా ఆరెంజ్ ఫ్లేవర్డ్', imageUrl: PRODUCT, itemType: 'product', couponExempt: false, variants: [v('fanta-1l', '1L', 45, 50)] },
   { id: 'chikkudu', categoryId: 'veggies-fruits', name: 'చిక్కుడు | Chikkudu', imageUrl: PRODUCT, itemType: 'product', couponExempt: false, variants: [v('chikkudu-500', '500 gm', 70, 80)] },
@@ -179,7 +256,26 @@ export const products: Product[] = [
   { id: 'heritage-curd', categoryId: 'dairy-bread-eggs', name: 'Heritage Total Curd Pouch', imageUrl: PRODUCT, itemType: 'product', couponExempt: false, variants: [v('hc-450', '450g or 500g', 50)] },
 ];
 
-export const dealProductIds = ['fanta-orange', 'chikkudu', 'watermelon', 'allam', 'beerakaya', 'munakkaya'];
+/** Replica products first (their ids are in old orders), then the iteration-2 assortment, with photos applied. */
+export const products: Product[] = withImages([...replicaProducts, ...assortment]);
+
+// Iteration 2: the live six first, then deals across the new assortment (all have an MRP above the price).
+export const dealProductIds = [
+  'chikkudu',
+  'watermelon',
+  'allam',
+  'beerakaya',
+  'munakkaya',
+  'tomato',
+  'onion',
+  'thums-up',
+  'aashirvaad-chilli',
+  'freedom-sunflower',
+  'haldiram-soan-papdi',
+  'cashew-w320',
+  'red-label',
+  'fanta-orange',
+];
 
 // More than 6, so the cart shows "View more" as the live cart does with its 20 suggestions.
 export const recommendationIds = [
@@ -193,4 +289,10 @@ export const recommendationIds = [
   'keera-dosakaya',
   'allam',
   'watermelon',
+  'maggi-masala',
+  'parle-g',
+  'lays-magic-masala',
+  'dairy-milk',
+  'heritage-milk',
+  'thums-up',
 ];

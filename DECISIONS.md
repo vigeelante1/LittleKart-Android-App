@@ -486,6 +486,55 @@ New decisions are added at the bottom with the next number. A decision is never 
 - **Icon:** still the plain green placeholder (`app/src/assets/placeholders/app-icon.png`, 1024 × 1024); the site has no app-icon image to copy. Replace that file with the founder's icon (same name and size) before a Play Store build. The splash screen uses the real LittleKart logo.
 - Release builds only call `https://` addresses (Android's default), which our Render API is.
 
+### D-76 · Iteration 2 begins: fixes from the first phone test
+- **Status:** Made (your go-ahead, 25 Oct 2026: "copied is done, now we start moving forward")
+- Iteration 1 (exact replica) is finished. From iteration 2 the live app is a reference, not a rule: where the phone test showed a problem, we fix it even if the live app has it too. D-01's "no redesign" applies only to iteration 1.
+- Fixed from the test: home header text overlapping the search box (taller lines, height measured instead of fixed), the rolling search word spilling out of the box (now one word at a time, clipped), the cart's bottom bar and "Login to Proceed" running under the phone's navigation bar (now sit above it with a 12 px gap), and order-tracking texts now centred with the Back button on its own row.
+
+### D-77 · New bottom dock: cart bar and tracking strip (replaces "View Cart" pill and the floating tracking card)
+- **Status:** Made — a deliberate change from the live app
+- One dock pinned to the bottom of Home, categories, deals and search: a full-width green **cart bar** (first three product photos, item count, total, "View Cart ›") and, when you have an active order, a white **tracking strip** above it (ETA, delivery OTP, "Track ›"). On other screens only the tracking strip shows; it hides on tracking, login, add-address and payment. Pages leave room for the dock so nothing hides behind it.
+- When the estimate runs out, the ETA reads "Arriving shortly" instead of "Arriving in 0 minutes".
+
+### D-78 · Real brand names in the catalog
+- **Status:** Made (your instruction: "Yes use real Indian brand names")
+- Products use real brand names (Amul, Haldiram's, Aashirvaad, Priya, Heritage, Vijaya, Parle, Britannia, ...) at prices close to Nalgonda shelf prices in Oct 2026. Restaurant and home-food sellers ("Nalgonda Spice Hub", "Sri Lakshmi Tiffins", "Annapurna Mess", "Amma Kitchen") are invented local names, not real businesses.
+- Brand names and pack photos only identify the product; the app doesn't claim any partnership. Before a public launch the founder should make sure LittleKart is allowed to sell each brand it lists.
+
+### D-79 · Assortment: every tile and sub-category has products
+- **Status:** Made
+- `shared/src/seed/assortment.ts` adds 364 products (393 in total, 2–12 per sub-category, many with two sizes) to the replica's 29. The live products keep their ids and come first. Limited Time Deals grows to 14 products and "Often bought together" to 16.
+- The API database gets them with `npm run db:seed` (safe to re-run; removed banners are deleted, stock levels already in the database are kept).
+
+### D-80 · Product photos: free-licensed images, loaded from their sources
+- **Status:** Replaced by D-82 (photos are now bundled and cleaned up)
+- 301 of 393 products have a photo: packaged goods from **Open Food Facts** (CC BY-SA), and fresh food, flowers, meat, dishes and non-food items from **Wikimedia Commons** (each file's own free licence). Every photo was checked by eye; unclear or wrong-brand photos were left out, so those products keep the neutral placeholder. Authors and licences are in `CREDITS.md`, which must ship with any public release.
+- Photos are loaded over the internet and cached on the phone. If a photo can't load (offline, file removed), the placeholder shows instead. Home tiles, sub-category icons and the top category strip use the photo of one of their products.
+- Fresh items show a typical photo of the item, not the exact pack the store sells. When the founder provides real photos (Q-07), they replace these by product id.
+
+### D-81 · Home offer banners: our own designs
+- **Status:** Made — a deliberate change from the live app
+- The live banners are the company's artwork (D-71), so iteration 1 showed blank placeholders. Now each banner is drawn by the app: a coloured gradient, a short headline, a one-line description, a button and a photo. Five banners, each opening its category: Fresh Meat & Fish, Diwali Store (decoration kits), Pooja Flowers, Sweets, Veggies & Fruits. The live "Refer" banner is dropped because the app has no referral programme.
+- Banner text lives in `app/src/strings.ts` (`banners`), designs in `app/src/features/home/bannerDesigns.ts`. To change the order or targets, edit `banners` in the seed catalog.
+
+### D-82 · Product photos cleaned up and bundled in the app
+- **Status:** Made (your request: "make the photos look more professional and sorted")
+- Every product now has an image bundled in the app (`app/src/assets/products/<id>.webp`, about 5 MB in total), so pictures show instantly and work offline; nothing is loaded from other websites any more.
+- 267 products use a free-licensed photo with the background removed (or, for loose items like dal and spices, a neat cropped square), centred on white at the same size with a soft shadow. Photos that showed hands, shop shelves, the wrong brand or were blurry were dropped.
+- The other 126 products use a **drawn card**: a soft green tile with a matching icon and the brand name (for example Manforce, Lifree, Heritage). These replace the grey placeholder everywhere, including Sexual Wellness and Adult Diapers, which now have real pack photos for Durex, Skore and Friends.
+- Inside each category, products with photos come first and products of the same brand sit together.
+- The free photo service the app used before (D-80) is replaced; credits for the edited photos are in `CREDITS.md` and must ship with any public release. The home banners' photos are bundled too.
+
+### D-83 · Pop-ups redesigned
+- **Status:** Made (your request: redesign the pop-ups, keeping the platform's colours and text sizes)
+- One shared pop-up style (`app/src/components/dialog/`): a rounded white card that rises in gently, a round tinted icon badge at the top (green for good news, red for problems), centred title and message, and full-width rounded buttons side by side. Same colour tokens and text styles as before.
+- Applied to: saved cart after login (cart badge with item count; "Clear Cart" outlined red, "Goto Cart" filled green), order submitted (the ✅ emoji is replaced by a green check badge), payment errors, cancel order, reorder update, order items, login success and the bill's "i" explanation (now with a "Got it" button instead of the floating ×).
+- The location, size picker, coupons, filters and Razorpay sheets keep their existing design.
+
+### D-84 · Login button in the header
+- **Status:** Made
+- "Login" is now a pill button (person icon + Login) in the same place, height and outline as the round profile button you see after signing in, centred against the greeting block. The header looks the same whether you're signed in or not.
+
 ---
 
 ## Open questions (answers become decisions above)

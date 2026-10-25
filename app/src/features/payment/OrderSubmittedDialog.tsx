@@ -1,47 +1,33 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { AppText } from '@/components/AppText';
-import { DialogClose, MuiDialog } from '@/components/MuiDialog';
-import { colors, shadows } from '@/theme';
+import { DialogActions } from '@/components/dialog/DialogActions';
+import { DialogBadge } from '@/components/dialog/DialogBadge';
+import { DialogButton } from '@/components/dialog/DialogButton';
+import { DialogShell } from '@/components/dialog/DialogShell';
 import { strings } from '@/strings';
 
-/** "✅ Order Submitted!" with View Tracking. Closing it also goes to the tracking page (site behaviour). */
+/** "Order Submitted!" with View Tracking. Closing it also goes to the tracking page (site behaviour). */
 export function OrderSubmittedDialog({ visible, onDone }: { visible: boolean; onDone: () => void }) {
   return (
-    <MuiDialog visible={visible} onClose={onDone}>
-      <View style={styles.title}>
-        <AppText variant="submittedTitle" align="center">
-          {strings.payment.submittedTitle}
-        </AppText>
-        <DialogClose onPress={onDone} />
-      </View>
-      <View style={styles.content}>
-        <AppText variant="muiBody1" align="center">
-          {strings.payment.submittedBody}
-        </AppText>
-        <AppText variant="muiBody2Muted" align="center" style={styles.redirect}>
-          {strings.payment.redirecting}
-        </AppText>
-      </View>
-      <View style={styles.actions}>
-        <Pressable onPress={onDone} accessibilityRole="button" style={({ pressed }) => [styles.button, pressed && styles.pressed]}>
-          <AppText variant="muiSuccessButton">{strings.payment.viewTracking}</AppText>
-        </Pressable>
-      </View>
-    </MuiDialog>
+    <DialogShell visible={visible} onClose={onDone}>
+      <DialogBadge icon="check-circle" tone="success" />
+      <AppText variant="submittedTitle" align="center" style={styles.title}>
+        {strings.payment.submittedTitle}
+      </AppText>
+      <AppText variant="muiBody1" align="center">
+        {strings.payment.submittedBody}
+      </AppText>
+      <AppText variant="muiBody2Muted" align="center" style={styles.redirect}>
+        {strings.payment.redirecting}
+      </AppText>
+      <DialogActions>
+        <DialogButton kind="primary" icon="delivery-dining" label={strings.payment.viewTracking} onPress={onDone} />
+      </DialogActions>
+    </DialogShell>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { paddingVertical: 16, paddingLeft: 24, paddingRight: 40 },
-  content: { paddingHorizontal: 24, paddingBottom: 20 },
-  redirect: { marginTop: 8 },
-  actions: { flexDirection: 'row', justifyContent: 'center', padding: 8, paddingBottom: 16 },
-  button: {
-    paddingVertical: 6,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    backgroundColor: colors.muiSuccess,
-    boxShadow: shadows.muiElevation2,
-  },
-  pressed: { opacity: 0.85 },
+  title: { marginBottom: 6 },
+  redirect: { marginTop: 6 },
 });

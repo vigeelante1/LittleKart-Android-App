@@ -4,7 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { FloatingTrackingCard } from '@/features/tracking/FloatingTrackingCard';
+import { BottomDock } from '@/features/dock/BottomDock';
 import { useCartSync } from '@/hooks/useCartSync';
 import { colors, fontAssets } from '@/theme';
 
@@ -31,7 +31,7 @@ export default function RootLayout() {
           contentStyle: { backgroundColor: colors.appBg },
         }}
       />
-      <FloatingTrackingCard />
+      <BottomDock />
     </SafeAreaProvider>
   );
 }

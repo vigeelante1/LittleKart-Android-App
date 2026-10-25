@@ -6,7 +6,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BackPill } from '@/components/BackPill';
-import { ViewCartPill, useViewCartPillSpace } from '@/components/ViewCartPill';
+import { useDock } from '@/features/dock/useDock';
 import { CategoryRail } from '@/features/category/CategoryRail';
 import { CategorySearch } from '@/features/category/CategorySearch';
 import { useCategory } from '@/features/category/useCategory';
@@ -28,7 +28,7 @@ export default function CategoryScreen() {
   // Picking another sub-category starts with no filters.
   const listing = useListing(category.products, selectedId ?? '');
   const [options, setOptions] = useState<Product | null>(null);
-  const pillSpace = useViewCartPillSpace();
+  const pillSpace = useDock().space;
 
   const title = category.selected?.name ?? params.title ?? '';
   // The site shows the search box only when the page is opened from a Home tile.
@@ -76,8 +76,6 @@ export default function CategoryScreen() {
           </ScrollView>
         </View>
       </View>
-
-      <ViewCartPill />
       <VariantDialog product={options} onClose={() => setOptions(null)} />
     </SafeAreaView>
   );

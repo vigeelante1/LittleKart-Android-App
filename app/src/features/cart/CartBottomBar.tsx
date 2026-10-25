@@ -4,8 +4,13 @@ import { AppText } from '@/components/AppText';
 import { colors, hairline, shadows } from '@/theme';
 import { strings } from '@/strings';
 
-/** Height of the guest / signed-in bar without the safe area, for the page's bottom padding (site: 84 / 116). */
-export const BAR_SPACE = { guest: 84, signedIn: 116 } as const;
+/**
+ * Height of the guest / signed-in bar without the safe area, for the page's bottom padding (site: 84 / 116,
+ * plus 12 so the button never touches a phone's curved bottom edge or gesture bar — iteration 2).
+ */
+export const BAR_SPACE = { guest: 96, signedIn: 128 } as const;
+/** Space under the button above the system inset. */
+const BOTTOM_GAP = 12;
 
 type Props =
   | { kind: 'guest'; onLogin: () => void }
@@ -24,7 +29,7 @@ type Props =
 export function CartBottomBar(props: Props) {
   const insets = useSafeAreaInsets();
   return (
-    <View style={[styles.bar, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.bar, { paddingBottom: insets.bottom + BOTTOM_GAP }]}>
       {props.kind === 'guest' ? (
         <View style={styles.row}>
           <BarButton label={strings.cart.loginToProceed} enabled onPress={props.onLogin} />

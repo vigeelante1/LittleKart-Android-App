@@ -6,6 +6,7 @@ export const strings = {
   common: {
     back: 'Back',
     close: 'Close',
+    ok: 'Got it',
     new: 'New',
     or: 'OR',
   },
@@ -284,6 +285,18 @@ export const strings = {
     deleteFailed: "We couldn't delete that address. Please try again.",
   },
 
+  dock: {
+    items: (n: number) => `${n} item${n === 1 ? '' : 's'}`,
+    track: 'Track',
+  },
+  /** Home offer banners (iteration 2, DECISIONS D-81). */
+  banners: {
+    meat: { kicker: 'Fresh Meat & Fish', title: 'Cut fresh,\ndelivered chilled', sub: 'Halal chicken, mutton and fish, cleaned and packed to order.', cta: 'Order now' },
+    flowers: { kicker: 'Pooja & Flowers', title: 'Flowers picked\nthis morning', sub: 'Marigold, jasmine and garlands for every pooja.', cta: 'Shop flowers' },
+    sweets: { kicker: 'Sweets', title: 'Sweeten every\ncelebration', sub: 'Kaju katli, laddus, Putharekulu and more.', cta: 'Explore sweets' },
+    veggies: { kicker: 'Veggies & Fruits', title: 'Farm fresh\nevery day', sub: 'Vegetables, leafy greens and fruits at mandi prices.', cta: 'Shop now' },
+    diwali: { kicker: 'Diwali Store', title: 'Light up\nthis Diwali', sub: 'Diyas, rangoli colours, lights and decorations.', cta: 'Get ready' },
+  },
   storeClosed: {
     sorry: 'Sorry,',
     were: "we're ",
@@ -321,7 +334,7 @@ export const strings = {
     upiRequired: 'UPI / card payment required',
     submit: 'Submit Order',
     submitting: 'Submitting...',
-    submittedTitle: '✅ Order Submitted!',
+    submittedTitle: 'Order Submitted!',
     submittedBody: 'Your order is being confirmed. You will see live updates shortly.',
     redirecting: 'Redirecting to tracking page...',
     viewTracking: 'View Tracking',

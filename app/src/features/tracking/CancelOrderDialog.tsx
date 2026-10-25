@@ -1,6 +1,9 @@
-import { StyleSheet, Pressable, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
-import { MuiDialog } from '@/components/MuiDialog';
+import { DialogActions } from '@/components/dialog/DialogActions';
+import { DialogBadge } from '@/components/dialog/DialogBadge';
+import { DialogButton } from '@/components/dialog/DialogButton';
+import { DialogShell } from '@/components/dialog/DialogShell';
 import { strings } from '@/strings';
 import { SupportContact } from './SupportContact';
 
@@ -11,32 +14,28 @@ interface Props {
   onCopied: (ok: boolean) => void;
 }
 
-/** "Cancel order": cancelling is done by customer support, so the dialog shows their number. */
+/** "Cancel order": cancelling is done by customer support, so the pop-up shows their number (D-83 design). */
 export function CancelOrderDialog({ visible, phone, onClose, onCopied }: Props) {
   return (
-    <MuiDialog visible={visible} onClose={onClose}>
-      <View style={styles.title}>
-        <AppText variant="muiH6Dialog">{strings.tracking.cancelOrder}</AppText>
-      </View>
-      <View style={styles.content}>
-        <AppText variant="muiBody2Muted" style={styles.lead}>
-          {strings.tracking.pleaseContact}
-        </AppText>
+    <DialogShell visible={visible} onClose={onClose}>
+      <DialogBadge icon="support-agent" tone="danger" />
+      <AppText variant="muiH6Dialog" align="center">
+        {strings.tracking.cancelOrder}
+      </AppText>
+      <AppText variant="muiBody2Muted" align="center" style={styles.lead}>
+        {strings.tracking.pleaseContact}
+      </AppText>
+      <View style={styles.contact}>
         <SupportContact phone={phone} onCopied={() => onCopied(true)} onCopyFailed={() => onCopied(false)} />
       </View>
-      <View style={styles.actions}>
-        <Pressable onPress={onClose} accessibilityRole="button" style={styles.close}>
-          <AppText variant="muiTextButton">{strings.tracking.close}</AppText>
-        </Pressable>
-      </View>
-    </MuiDialog>
+      <DialogActions>
+        <DialogButton kind="secondary" label={strings.tracking.close} onPress={onClose} />
+      </DialogActions>
+    </DialogShell>
   );
 }
 
 const styles = StyleSheet.create({
-  title: { paddingVertical: 16, paddingHorizontal: 24 },
-  content: { paddingHorizontal: 24, paddingBottom: 20 },
-  lead: { marginBottom: 4 },
-  actions: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, paddingBottom: 16, paddingTop: 8 },
-  close: { paddingVertical: 6, paddingHorizontal: 8, borderRadius: 4 },
+  lead: { marginTop: 4, marginBottom: 12 },
+  contact: { alignSelf: 'stretch' },
 });

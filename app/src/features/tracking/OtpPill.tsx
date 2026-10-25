@@ -20,7 +20,6 @@ export function OtpPill({ otp }: { otp: string }) {
 const styles = StyleSheet.create({
   pill: {
     marginTop: 6,
-    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

@@ -37,15 +37,18 @@ export function HomeHeader({ theme, greeting, deliveryLabel, searchWords, expand
   const user = useAuthStore((s) => s.user);
   const address = useLocationStore((s) => s.selected?.text) || strings.home.selectLocation;
   const [height] = useState(() => new Animated.Value(TOP_ROW));
+  // The greeting block is as tall as its text needs (the headline can take two lines on a phone), so its
+  // height is measured instead of fixed; it folds to 0 while the page is scrolled.
+  const [topHeight, setTopHeight] = useState(TOP_ROW);
 
   useEffect(() => {
     Animated.timing(height, {
-      toValue: expanded ? TOP_ROW : 0,
-      duration: 300,
+      toValue: expanded ? topHeight : 0,
+      duration: 250,
       easing: Easing.inOut(Easing.ease),
       useNativeDriver: false,
     }).start();
-  }, [expanded, height]);
+  }, [expanded, height, topHeight]);
 
   const accent = theme.accent;
   return (
@@ -67,7 +70,13 @@ export function HomeHeader({ theme, greeting, deliveryLabel, searchWords, expand
 
       <View style={[styles.inner, { paddingTop: (belowSign ? 0 : insets.top) + 8 }]}>
         <Animated.View style={[styles.topRowClip, { height }]}>
-          <View style={styles.topRow}>
+          <View
+            style={styles.topRow}
+            onLayout={(e) => {
+              const h = Math.ceil(e.nativeEvent.layout.height);
+              if (Math.abs(h - topHeight) > 1) setTopHeight(h);
+            }}
+          >
             <Pressable onPress={onOpenLocation} style={styles.location} accessibilityRole="button">
               <AppText variant="greeting" style={[styles.greeting, { color: accent }]} numberOfLines={1}>
                 {greeting}
@@ -80,9 +89,8 @@ export function HomeHeader({ theme, greeting, deliveryLabel, searchWords, expand
                   {deliveryLabel}
                 </AppText>
               </View>
-              {/* The live header has this line too; its 66 px row clips it, so it barely shows. */}
               <View style={styles.addressRow}>
-                <AppText variant="headerAddress" style={[styles.address, { color: accent }]} numberOfLines={2}>
+                <AppText variant="headerAddress" style={[styles.address, { color: accent }]} numberOfLines={1}>
                   {address}
                 </AppText>
                 <ArrowDropDownIcon size={24} color={accent} />
@@ -103,7 +111,19 @@ export function HomeHeader({ theme, greeting, deliveryLabel, searchWords, expand
                 <PersonIcon size={22} color={accent} />
               </Pressable>
             ) : (
-              <Pressable onPress={() => router.push('/login')} accessibilityRole="button" style={styles.login}>
+              // Same slot, height and outline as the profile button, so the header looks the same signed in or out.
+              <Pressable
+                onPress={() => router.push('/login')}
+                accessibilityRole="button"
+                style={[
+                  styles.profile,
+                  styles.login,
+                  theme.night
+                    ? styles.profileNight
+                    : { borderColor: theme.searchBorder, boxShadow: theme.searchShadow },
+                ]}
+              >
+                <PersonIcon size={18} color={accent} />
                 <AppText variant="headerLogin" style={{ color: accent }}>
                   {strings.home.login}
                 </AppText>
@@ -134,18 +154,31 @@ const styles = StyleSheet.create({
   wrap: { borderBottomWidth: hairline, boxShadow: shadows.header, zIndex: 10 },
   inner: { paddingHorizontal: 24 },
   topRowClip: { overflow: 'hidden' },
-  topRow: { minHeight: TOP_ROW, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', paddingHorizontal: 16, paddingTop: 4 },
+  // Taken out of the flow so it keeps its natural height inside the folding clip.
+  topRow: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    // Login / profile button sits centred against the greeting, headline and address block.
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 10,
+  },
   location: { flexShrink: 1, justifyContent: 'center' },
   greeting: { opacity: 0.72, marginBottom: 1.6 },
   headlineRow: { flexDirection: 'row', alignItems: 'center' },
   headlineIcon: { marginRight: 6 },
   headline: { flexShrink: 1 },
-  addressRow: { maxWidth: 220, flexDirection: 'row', alignItems: 'flex-start', overflow: 'hidden' },
+  addressRow: { marginTop: 2, flexDirection: 'row', alignItems: 'center' },
   address: { marginRight: 4, flexShrink: 1 },
   profile: {
     width: 36,
+    marginLeft: 12,
     height: 36,
-    marginTop: 2,
     borderRadius: 18,
     borderWidth: 1,
     alignItems: 'center',
@@ -157,7 +190,7 @@ const styles = StyleSheet.create({
     borderColor: colors.headerProfileNightBorder,
     boxShadow: shadows.headerProfileNight,
   },
-  login: { paddingHorizontal: 4, paddingVertical: 2 },
+  login: { width: undefined, flexDirection: 'row', gap: 4, paddingLeft: 10, paddingRight: 14, marginLeft: 12 },
   search: {
     height: 44,
     marginBottom: 8.8,

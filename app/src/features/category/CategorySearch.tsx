@@ -1,5 +1,6 @@
 import { MaterialIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { AppText } from '@/components/AppText';
 import { colors, interFamily } from '@/theme';
 import { strings } from '@/strings';
 
@@ -14,11 +15,16 @@ export function CategorySearch({ value, onChange, placeholder }: Props) {
   return (
     <View style={styles.box}>
       <MaterialIcons name="search" size={24} color={colors.textSlateMuted} style={styles.icon} />
+      {/* Our own one-line hint: Android wraps a long native placeholder onto a second, cut-off line. */}
+      {value ? null : (
+        <AppText variant="categorySearchHint" numberOfLines={1} style={styles.hint} pointerEvents="none">
+          {placeholder}
+        </AppText>
+      )}
       <TextInput
         value={value}
         onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor={colors.inputPlaceholder}
+        accessibilityLabel={placeholder}
         allowFontScaling={false}
         returnKeyType="search"
         selectionColor={colors.brightGreen}
@@ -61,5 +67,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
+  hint: { position: 'absolute', left: 42, right: 44 },
   trailing: { width: 30, height: 30, marginLeft: 4, alignItems: 'center', justifyContent: 'center' },
 });

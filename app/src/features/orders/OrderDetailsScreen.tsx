@@ -8,18 +8,23 @@ import { colors } from '@/theme';
 import { strings } from '@/strings';
 import { OrderDetails } from './OrderDetails';
 import { useOrder } from './useOrders';
+import { useDock } from '@/features/dock/useDock';
 
 /** Loads the order in the URL and shows its details, optionally under the profile header. */
 export function OrderDetailsScreen({ embedded, header }: { embedded: boolean; header?: ReactNode }) {
   const { id } = useLocalSearchParams<{ id: string }>();
   const user = useAuthStore((s) => s.user);
   const order = useOrder(id);
+  const dockSpace = useDock().space;
   if (!user) return <Redirect href="/login" />;
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
       <View style={styles.page}>
         {header}
-        <ScrollView contentContainerStyle={embedded ? styles.embedded : styles.plain} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          contentContainerStyle={[embedded ? styles.embedded : styles.plain, { paddingBottom: 24 + dockSpace }]}
+          showsVerticalScrollIndicator={false}
+        >
           {order === undefined ? (
             <ActivityIndicator color={colors.primary} style={styles.loading} />
           ) : order === null ? (

@@ -1,4 +1,4 @@
-import { isTrackable, minutesLeft, SUPPORT_PHONE_FALLBACK } from '@littlekart/shared';
+import { arrivalLabel, isTrackable, SUPPORT_PHONE_FALLBACK } from '@littlekart/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Redirect, router, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState, type ReactNode } from 'react';
@@ -63,19 +63,19 @@ export default function TrackingScreen() {
   // Delivered, failed, cancelled or older than 45 minutes: the site moves on to the order details.
   if (!isTrackable(order, now)) return <Redirect href={{ pathname: '/orders/[id]', params: { id: order.id } }} />;
 
-  const minutes = minutesLeft(order, now);
+  const eta = arrivalLabel(order, now);
   return (
     <Shell>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 + insets.bottom }} showsVerticalScrollIndicator={false}>
-        <TrackingHero order={order} minutes={minutes} />
+        <TrackingHero order={order} eta={eta} />
         <View style={styles.content}>
-          <MapSection order={order} minutes={minutes} store={store} />
+          <MapSection order={order} eta={eta} store={store} />
           <View style={styles.info}>
             {active.length >= 1 ? <ActiveOrdersCard orders={active} currentId={order.id} /> : null}
-            <DeliveryCard order={order} minutes={minutes} onCancel={() => setCancelOpen(true)} />
+            <DeliveryCard order={order} eta={eta} onCancel={() => setCancelOpen(true)} />
             <SummaryCard
               order={order}
-              minutes={minutes}
+              eta={eta}
               onPress={() => router.push({ pathname: '/orders/[id]', params: { id: order.id } })}
             />
             <DeliveryStatusCard order={order} />

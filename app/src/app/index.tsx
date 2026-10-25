@@ -10,7 +10,7 @@ import {
   type NativeScrollEvent,
   type NativeSyntheticEvent,
 } from 'react-native';
-import { ViewCartPill, useViewCartPillSpace } from '@/components/ViewCartPill';
+import { useDock } from '@/features/dock/useDock';
 import { BannerCarousel } from '@/features/home/BannerCarousel';
 import { CategoryStrip } from '@/features/home/CategoryStrip';
 import { DealsSection } from '@/features/home/DealsSection';
@@ -61,7 +61,7 @@ export default function HomeScreen() {
   const hasLocation = useLocationStore((s) => s.selected !== null);
   const locationReady = useHydrated(useLocationStore);
   const savedCart = useSavedCartPrompt();
-  const pillSpace = useViewCartPillSpace();
+  const pillSpace = useDock().space;
 
   const [expanded, setExpanded] = useState(true);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -128,7 +128,7 @@ export default function HomeScreen() {
         onScroll={onScroll}
         scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: pillSpace }}
+        contentContainerStyle={{ paddingBottom: Math.max(24, pillSpace) }}
       >
         <View onLayout={(e: LayoutChangeEvent) => (stripHeight.current = e.nativeEvent.layout.height)}>
           {data ? (
@@ -151,8 +151,6 @@ export default function HomeScreen() {
           </View>
         ))}
       </ScrollView>
-
-      <ViewCartPill />
 
       <LocationDialog
         visible={showLocation}

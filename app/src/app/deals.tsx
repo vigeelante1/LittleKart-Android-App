@@ -4,7 +4,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
 import { BackPill } from '@/components/BackPill';
-import { ViewCartPill, useViewCartPillSpace } from '@/components/ViewCartPill';
+import { useDock } from '@/features/dock/useDock';
 import { VariantDialog } from '@/features/category/VariantDialog';
 import { ProductGrid } from '@/features/listing/ProductGrid';
 import { useHomeData } from '@/hooks/useHomeData';
@@ -20,7 +20,7 @@ export default function DealsScreen() {
   const deals = data?.deals ?? [];
   const [count, setCount] = useState(PAGE);
   const [options, setOptions] = useState<Product | null>(null);
-  const pillSpace = useViewCartPillSpace();
+  const pillSpace = useDock().space;
   const openOptions = useCallback((p: Product) => setOptions(p), []);
 
   return (
@@ -50,7 +50,6 @@ export default function DealsScreen() {
           ) : null}
         </ScrollView>
       </View>
-      <ViewCartPill />
       <VariantDialog product={options} onClose={() => setOptions(null)} />
     </SafeAreaView>
   );

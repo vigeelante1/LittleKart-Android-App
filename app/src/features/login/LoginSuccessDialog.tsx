@@ -1,7 +1,7 @@
-import { MaterialIcons } from '@expo/vector-icons';
-import { Modal, Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { AppText } from '@/components/AppText';
-import { colors, shadows } from '@/theme';
+import { DialogBadge } from '@/components/dialog/DialogBadge';
+import { DialogShell } from '@/components/dialog/DialogShell';
 import { strings } from '@/strings';
 
 interface Props {
@@ -10,42 +10,22 @@ interface Props {
   onDismiss: () => void;
 }
 
-/** Green check, "Logged in successfully!" and "Taking you to your account...". No buttons. */
+/** Green check, "Logged in successfully!" and "Taking you to your account...". No buttons (D-83 design). */
 export function LoginSuccessDialog({ visible, onDismiss }: Props) {
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onDismiss}>
-      <Pressable style={styles.backdrop} onPress={onDismiss} accessibilityRole="none">
-        <Pressable style={styles.card} onPress={() => undefined} accessibilityRole="alert" accessibilityLiveRegion="polite">
-          <MaterialIcons name="check-circle" size={64} color={colors.brightGreen} style={styles.icon} />
-          <AppText variant="successTitle" align="center">
-            {strings.login.successTitle}
-          </AppText>
-          <AppText variant="successSub" align="center" style={styles.sub}>
-            {strings.login.successSub}
-          </AppText>
-        </Pressable>
-      </Pressable>
-    </Modal>
+    <DialogShell visible={visible} onClose={onDismiss} showClose={false} style={styles.card}>
+      <DialogBadge icon="check-circle" tone="success" />
+      <AppText variant="successTitle" align="center">
+        {strings.login.successTitle}
+      </AppText>
+      <AppText variant="successSub" align="center" style={styles.sub}>
+        {strings.login.successSub}
+      </AppText>
+    </DialogShell>
   );
 }
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    backgroundColor: colors.successBackdrop,
-  },
-  card: {
-    width: '100%',
-    maxWidth: 300,
-    padding: 24,
-    borderRadius: 12,
-    alignItems: 'center',
-    backgroundColor: colors.surface,
-    boxShadow: shadows.successDialog,
-  },
-  icon: { marginBottom: 12 },
-  sub: { marginTop: 8 },
+  card: { maxWidth: 320 },
+  sub: { marginTop: 6 },
 });

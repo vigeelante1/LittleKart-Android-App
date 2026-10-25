@@ -273,6 +273,16 @@ export const colors = {
   whiteTint26: 'rgba(255, 255, 255, 0.26)',
   cancelCardBorder: '#fde6d8',
   skeleton: 'rgba(0, 0, 0, 0.11)',
+
+  // Home offer banners (iteration 2, DECISIONS D-81): our own designs, not the live app's artwork
+  bannerMeat: ['#7f1d1d', '#dc2626'] as const,
+  bannerFlowers: ['#9a3412', '#f59e0b'] as const,
+  bannerSweets: ['#831843', '#db2777'] as const,
+  bannerVeggies: ['#14532d', '#16a34a'] as const,
+  bannerDiwali: ['#3b0764', '#9333ea'] as const,
+  bannerKickerBg: 'rgba(255, 255, 255, 0.18)',
+  bannerCtaText: '#111827',
+  bannerPhotoRing: 'rgba(255, 255, 255, 0.35)',
 } as const;
 
 export type ColorToken = Exclude<
@@ -284,4 +294,9 @@ export type ColorToken = Exclude<
   | 'labelTagGradient'
   | 'labelTagSelectedGradient'
   | 'addAddressGradient'
+  | 'bannerMeat'
+  | 'bannerFlowers'
+  | 'bannerSweets'
+  | 'bannerVeggies'
+  | 'bannerDiwali'
 >;

@@ -73,6 +73,9 @@ export const shadows = {
   closedTag: '0px 8px 24px 0px rgba(99, 17, 17, 0.35), 0px 2px 6px 0px rgba(0, 0, 0, 0.12)',
   closedTagRing: 'inset 0px 0px 0px 2px rgba(255, 255, 255, 0.92)',
   rivet: 'inset 0px 1px 1px 0px rgba(255, 255, 255, 0.65), 0px 1px 2px 0px rgba(0, 0, 0, 0.35)',
+  // Bottom dock
+  dockCart: '0px 8px 20px rgba(12, 131, 31, 0.3)',
+  dockStrip: '0px 6px 18px rgba(15, 23, 42, 0.12)',
   // M9: payment, tracking, orders
   muiElevation8: '0px 5px 5px -3px rgba(0, 0, 0, 0.2), 0px 8px 10px 1px rgba(0, 0, 0, 0.14), 0px 3px 14px 2px rgba(0, 0, 0, 0.12)',
   paymentSelected: '0px 6px 16px rgba(1, 163, 42, 0.25)',

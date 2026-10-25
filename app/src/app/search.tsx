@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText } from '@/components/AppText';
-import { ViewCartPill, useViewCartPillSpace } from '@/components/ViewCartPill';
+import { useDock } from '@/features/dock/useDock';
 import { VariantDialog } from '@/features/category/VariantDialog';
 import { ListingChips } from '@/features/listing/ListingChips';
 import { ProductGrid } from '@/features/listing/ProductGrid';
@@ -19,7 +19,7 @@ export default function SearchScreen() {
   const search = useProductSearch(text);
   const listing = useListing(search.products, search.query);
   const [options, setOptions] = useState<Product | null>(null);
-  const pillSpace = useViewCartPillSpace();
+  const pillSpace = useDock().space;
   const openOptions = useCallback((p: Product) => setOptions(p), []);
 
   const hasResults = search.products.length > 0;
@@ -61,8 +61,6 @@ export default function SearchScreen() {
           </View>
         ) : null}
       </ScrollView>
-
-      <ViewCartPill />
       <VariantDialog product={options} onClose={() => setOptions(null)} />
     </SafeAreaView>
   );

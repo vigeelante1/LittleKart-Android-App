@@ -1,5 +1,5 @@
 import { MaterialIcons } from '@expo/vector-icons';
-import { arrivingIn, canCancel, cannotCancelReason, type Order } from '@littlekart/shared';
+import { canCancel, cannotCancelReason, type Order } from '@littlekart/shared';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors } from '@/theme';
@@ -8,12 +8,13 @@ import { TrackingCard } from './TrackingCard';
 
 interface Props {
   order: Order;
-  minutes: number;
+  /** "Arriving in 12 minutes" or "Arriving shortly". */
+  eta: string;
   onCancel: () => void;
 }
 
 /** "ESTIMATE / Arriving in N minutes", "DELIVER TO / address" and the Cancel order button. */
-export function DeliveryCard({ order, minutes, onCancel }: Props) {
+export function DeliveryCard({ order, eta, onCancel }: Props) {
   const cancellable = canCancel(order.status);
   return (
     <TrackingCard style={styles.card}>
@@ -24,7 +25,7 @@ export function DeliveryCard({ order, minutes, onCancel }: Props) {
         <View style={styles.flex}>
           <AppText variant="trackingOverline">{strings.tracking.estimate}</AppText>
           <AppText variant="trackingCardTitle" style={styles.title}>
-            {arrivingIn(minutes)}
+            {eta}
           </AppText>
           <AppText variant="trackingCardSub">{strings.tracking.toReach}</AppText>
         </View>

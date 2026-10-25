@@ -1,4 +1,4 @@
-import { isTrackable, type Order } from '@littlekart/shared';
+import { isTrackable } from '@littlekart/shared';
 import { useEffect } from 'react';
 import { repos } from '@/services';
 import { useAuthStore, useTrackingStore } from '@/store';
@@ -6,12 +6,11 @@ import { useAuthStore, useTrackingStore } from '@/store';
 const REFRESH_MS = 20_000;
 
 /**
- * The order on the floating tracking card: the newest order that can still be tracked (placed, not
- * delivered or failed, less than 45 minutes old). Refreshed every 20 s like the site.
+ * Keeps the tracked order up to date: the newest order that can still be tracked (placed, not delivered or
+ * failed, less than 45 minutes old). Refreshed every 20 s like the site. Mounted once, in the bottom dock.
  */
-export function useActiveOrder(now: number): Order | null {
+export function useActiveOrderRefresh(): void {
   const user = useAuthStore((s) => s.user);
-  const active = useTrackingStore((s) => s.active);
   const setActive = useTrackingStore((s) => s.setActive);
 
   useEffect(() => {
@@ -32,7 +31,4 @@ export function useActiveOrder(now: number): Order | null {
       clearInterval(timer);
     };
   }, [user, setActive]);
-
-  if (!user || !active || !isTrackable(active, now)) return null;
-  return active;
 }

@@ -42,6 +42,8 @@ export async function seed(sql: Sql): Promise<void> {
         }
       }
     }
+    // Banners removed from the catalog are removed here too (iteration 2 replaced "b-refer").
+    await tx`delete from banners where not (id = any(${banners.map((b) => b.id)}))`;
     for (const [i, b] of banners.entries()) {
       await tx`insert into banners (id, image_url, target_tile_id, sort_order) values (${b.id}, ${b.imageUrl}, ${b.targetTileId ?? null}, ${i})
         on conflict (id) do update set image_url = excluded.image_url, target_tile_id = excluded.target_tile_id, sort_order = excluded.sort_order`;

@@ -171,6 +171,12 @@ export function minutesLeft(order: Pick<Order, 'createdAt' | 'etaMinutes'>, nowM
 }
 export const arrivingIn = (minutes: number) => `Arriving in ${minutes} minute${minutes === 1 ? '' : 's'}`;
 
+/** "Arriving in N minutes", or "Arriving shortly" once the estimate has passed (iteration 2; the site keeps "1 minute"). */
+export function arrivalLabel(order: Pick<Order, 'createdAt' | 'etaMinutes'>, nowMs = Date.now()): string {
+  const elapsed = (nowMs - order.createdAt) / 60_000;
+  return elapsed >= order.etaMinutes ? 'Arriving shortly' : arrivingIn(minutesLeft(order, nowMs));
+}
+
 /** Random 4-digit delivery code. */
 export function makeDeliveryOtp(random: () => number = Math.random): string {
   return String(Math.floor(random() * 10000)).padStart(4, '0');
