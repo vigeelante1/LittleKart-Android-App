@@ -1,0 +1,49 @@
+{
+  "name": "@littlekart/app",
+  "version": "0.1.0",
+  "private": true,
+  "main": "expo-router/entry",
+  "scripts": {
+    "setup": "npx expo install react react-native react-dom expo-router expo-dev-client expo-constants expo-linking expo-status-bar expo-font expo-splash-screen expo-system-ui @expo-google-fonts/inter expo-image expo-linear-gradient react-native-screens react-native-safe-area-context react-native-svg @react-native-async-storage/async-storage @expo/vector-icons zustand",
+    "start": "expo start --dev-client",
+    "android": "expo run:android",
+    "typecheck": "tsc --noEmit",
+    "lint": "expo lint",
+    "build:dev": "eas build -p android --profile development",
+    "build:preview": "eas build -p android --profile preview"
+  },
+  "dependencies": {
+    "@expo-google-fonts/dancing-script": "^0.4.2",
+    "@expo-google-fonts/inter": "^0.4.2",
+    "@expo/vector-icons": "^15.0.2",
+    "@littlekart/shared": "*",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "eslint-config-expo": "~57.0.2",
+    "expo": "~57.0.31",
+    "expo-clipboard": "~57.0.2",
+    "expo-constants": "~57.0.22",
+    "expo-dev-client": "~57.0.20",
+    "expo-font": "~57.0.4",
+    "expo-image": "~57.0.5",
+    "expo-linear-gradient": "~57.0.2",
+    "expo-linking": "~57.0.13",
+    "expo-location": "~57.0.22",
+    "expo-router": "~57.0.29",
+    "expo-splash-screen": "~57.0.10",
+    "expo-status-bar": "~57.0.1",
+    "expo-system-ui": "~57.0.4",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-svg": "15.15.4",
+    "react-native-webview": "13.16.1",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.0",
+    "eslint": "^9.39.5",
+    "typescript": "~5.9.0"
+  }
+}

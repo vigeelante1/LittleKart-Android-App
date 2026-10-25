@@ -1,0 +1,20 @@
+{
+  "name": "littlekart",
+  "version": "0.1.0",
+  "private": true,
+  "description": "LittleKart Android app (Expo) + backend (Fastify) + shared business rules",
+  "workspaces": [
+    "shared",
+    "api",
+    "app"
+  ],
+  "scripts": {
+    "test": "npm run test -w @littlekart/shared && npm run test -w @littlekart/api",
+    "typecheck": "npm run typecheck -w @littlekart/shared && npm run typecheck -w @littlekart/api && npm run typecheck -w @littlekart/app",
+    "app": "npm run start -w @littlekart/app",
+    "api": "npm run dev -w @littlekart/api"
+  },
+  "engines": {
+    "node": ">=20.19"
+  }
+}

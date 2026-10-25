@@ -1,0 +1,37 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_DATA_SOURCE": "mock" }
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": { "EXPO_PUBLIC_DATA_SOURCE": "mock" }
+    },
+    "preview-api": {
+      "extends": "preview",
+      "env": {
+        "EXPO_PUBLIC_DATA_SOURCE": "http",
+        "EXPO_PUBLIC_API_URL": "https://littlekart-api.onrender.com"
+      }
+    },
+    "production": {
+      "android": { "buildType": "app-bundle" },
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_DATA_SOURCE": "http",
+        "EXPO_PUBLIC_API_URL": "https://littlekart-api.onrender.com"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}

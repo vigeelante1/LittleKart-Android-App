@@ -1,0 +1,31 @@
+{
+  "name": "@littlekart/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LittleKart backend (Fastify + PostgreSQL)",
+  "scripts": {
+    "dev": "node --env-file-if-exists=.env --watch --import tsx src/server.ts",
+    "start": "node --env-file-if-exists=.env --import tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "db:migrate": "node --env-file-if-exists=.env --import tsx src/db/migrate.ts",
+    "db:seed": "node --env-file-if-exists=.env --import tsx src/db/seed.ts"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.0.0",
+    "@littlekart/shared": "*",
+    "fastify": "^5.6.0",
+    "postgres": "^3.4.7",
+    "tsx": "^4.20.0",
+    "zod": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.9.0",
+    "vitest": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=22.9"
+  }
+}

@@ -1,0 +1,28 @@
+# Render Blueprint for the API (free web service, no card). DECISIONS D-11, D-66.
+# Render → New → Blueprint → pick this repository. It asks for DATABASE_URL (from Neon) on first deploy.
+services:
+  - type: web
+    name: littlekart-api
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: npm ci --workspace @littlekart/api --workspace @littlekart/shared --include-workspace-root
+    startCommand: npm run start --workspace @littlekart/api
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL
+        sync: false
+      - key: REVIEW_PHONES
+        value: "*"
+      - key: REVIEW_OTP
+        value: "1234"
+      # Razorpay test keys (README "Put the API online", step 5). Leave empty for Cash on Delivery only.
+      - key: RAZORPAY_KEY_ID
+        sync: false
+      - key: RAZORPAY_KEY_SECRET
+        sync: false
+      - key: RAZORPAY_WEBHOOK_SECRET
+        sync: false
