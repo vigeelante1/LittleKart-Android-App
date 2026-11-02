@@ -1,4 +1,6 @@
 import { formatRupee } from '@littlekart/shared';
+import type { ReactNode } from 'react';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { ProductImage } from '@/components/ProductImage';
@@ -18,6 +20,8 @@ interface Props {
   onDecrement: () => void;
   onBlockedIncrement: () => void;
   onRemove: () => void;
+  /** Shown under the line inside the card (the Swap & save strip, D-91). */
+  footer?: ReactNode;
 }
 
 /** One cart line (littlekart.com /cart "cart-line-item"). */
@@ -30,6 +34,7 @@ export function CartLineCard({
   onDecrement,
   onBlockedIncrement,
   onRemove,
+  footer,
 }: Props) {
   const { product, variant, line } = item;
   const outOfStock = variant.stock <= 0;
@@ -37,9 +42,15 @@ export function CartLineCard({
 
   return (
     <View style={[styles.card, outOfStock && styles.unavailable]}>
-      <View style={styles.thumb}>
+      <View style={styles.row}>
+      <Pressable
+        onPress={() => router.push({ pathname: '/product/[id]', params: { id: product.id } })}
+        accessibilityRole="button"
+        accessibilityLabel={product.name}
+        style={styles.thumb}
+      >
         <ProductImage uri={variant.imageUrl ?? product.imageUrl} style={styles.image} accessibilityLabel={product.name} />
-      </View>
+      </Pressable>
 
       <View style={styles.info}>
         <View style={styles.nameBox}>
@@ -93,15 +104,14 @@ export function CartLineCard({
           </Pressable>
         </View>
       )}
+      </View>
+      {footer}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 12,
     padding: 12,
     borderWidth: hairline,
     borderColor: colors.border,
@@ -109,6 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surface,
     boxShadow: shadows.cartLine,
   },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   unavailable: { opacity: 0.72 },
   thumb: {
     width: 60,

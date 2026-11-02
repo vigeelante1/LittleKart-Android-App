@@ -1,4 +1,4 @@
-import { canCancel, cannotCancelReason, formatOrderTime, formatPlacedOn, isFailedOrder, stageMessage, statusLabel, SUPPORT_PHONE_FALLBACK, type Order } from '@littlekart/shared';
+import { canCancel, cannotCancelReason, formatOrderTime, formatPlacedOn, isFailedOrder, slotLabel, stageMessage, statusLabel, SUPPORT_PHONE_FALLBACK, type Order } from '@littlekart/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -26,7 +26,7 @@ export function OrderDetails({ order, embedded }: { order: Order; embedded: bool
   const cancelled = order.status === 'cancelled';
   const showCancellation = !failed && !delivered;
   const cancellable = canCancel(order.status);
-  const statusText = delivered ? strings.orders.deliveredLine : cancelled ? strings.orders.cancelledLine : order.status === 'payment_failed' ? strings.orders.failedLine : strings.orders.placedAtLine(formatOrderTime(order.createdAt));
+  const statusText = delivered ? strings.orders.deliveredLine : cancelled ? strings.orders.cancelledLine : order.status === 'payment_failed' ? strings.orders.failedLine : order.scheduledFor ? strings.schedule.detailsLine(slotLabel(order.scheduledFor)) : strings.orders.placedAtLine(formatOrderTime(order.createdAt));
   const reordering = busyId === order.id;
 
   return (

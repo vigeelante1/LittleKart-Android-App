@@ -4,6 +4,7 @@ import Fastify from 'fastify';
 import { memoryData } from './data/memory.js';
 import type { DataLayer, OtpStore } from './data/types.js';
 import { env, reviewPhones } from './env.js';
+import { aiRoutes, type AiOptions } from './routes/ai.js';
 import { authRoutes } from './routes/auth.js';
 import { catalogRoutes } from './routes/catalog.js';
 import { geoRoutes, type GeoOptions } from './routes/geo.js';
@@ -21,6 +22,8 @@ export interface AppOptions {
   gateway?: PaymentGateway;
   /** Clock for store hours (tests pin it to a time the stores are open). */
   now?: () => number;
+  /** Ask AI: Gemini key (default GEMINI_API_KEY) and, for tests, a fetch stand-in. */
+  ai?: AiOptions;
 }
 
 export async function buildApp(options: AppOptions = {}) {
@@ -39,6 +42,7 @@ export async function buildApp(options: AppOptions = {}) {
   await app.register(shoppingRoutes, { data });
   await app.register(orderRoutes, { data, gateway: options.gateway, now: options.now ?? Date.now });
   await app.register(geoRoutes, options.geo ?? {});
+  await app.register(aiRoutes, { catalog: data.catalog, apiKey: env.GEMINI_API_KEY, ...options.ai });
   app.addHook('onClose', async () => data.close());
   return app;
 }

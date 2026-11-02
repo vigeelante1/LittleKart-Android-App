@@ -1,6 +1,7 @@
 // Orders and payments on both data layers (PostgreSQL when TEST_DATABASE_URL is set).
 import { createHmac } from 'node:crypto';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { scheduleSlots } from '@littlekart/shared';
 import { buildApp } from '../src/app.js';
 import { memoryData } from '../src/data/memory.js';
 import { pgData } from '../src/data/pg.js';
@@ -144,6 +145,24 @@ describe.each(layers)('%s orders', (name, make) => {
     expect(hook.statusCode).toBe(204);
     const got = (await app.inject({ method: 'GET', url: `/orders/${order.id}`, headers: auth })).json() as { status: string };
     expect(got.status).toBe('pending');
+  });
+
+  it('takes a scheduled order for a slot while the store is closed (D-103)', async () => {
+    const night = await buildApp({ data: memoryData(), auth: { reviewPhones: new Set(['*']), reviewOtp: '1234' }, now: () => NIGHT });
+    await night.inject({ method: 'POST', url: '/auth/otp/send', payload: { phone: '9000000004', purpose: 'signup' } });
+    const v = await night.inject({ method: 'POST', url: '/auth/otp/verify', payload: { phone: '9000000004', otp: '1234', purpose: 'signup', name: 'A' } });
+    const headers = { authorization: `Bearer ${(v.json() as { token: string }).token}` };
+    const slots = scheduleSlots({ openTime: '6:00 AM', closeTime: '12:00 AM' }, NIGHT);
+    const eight = slots[2]!;
+    const place = (slotStart: number) =>
+      night.inject({ method: 'POST', url: '/orders', headers, payload: { requestId: rid(), lines: [butter(1)], address: ADDRESS, tip: 0, paymentType: 'Cash on Delivery', slotStart } });
+    const ok = await place(eight.start);
+    expect(ok.statusCode).toBe(201);
+    expect((ok.json() as { order: { scheduledFor: unknown } }).order.scheduledFor).toEqual(eight);
+    const bad = await place(eight.start + 60_000);
+    expect(bad.json()).toMatchObject({ error: 'slot_unavailable' });
+    const listed = (await night.inject({ method: 'GET', url: '/orders', headers })).json() as { scheduledFor?: unknown }[];
+    expect(listed[0]?.scheduledFor).toEqual(eight);
   });
 
   it('refuses orders while the store is closed (2:30 AM)', async () => {

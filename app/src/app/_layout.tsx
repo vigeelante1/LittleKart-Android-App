@@ -4,6 +4,8 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AskAiButton } from '@/features/ai/AskAiButton';
+import { AskAiSheet } from '@/features/ai/AskAiSheet';
 import { BottomDock } from '@/features/dock/BottomDock';
 import { useCartSync } from '@/hooks/useCartSync';
 import { colors, fontAssets } from '@/theme';
@@ -32,6 +34,8 @@ export default function RootLayout() {
         }}
       />
       <BottomDock />
+      <AskAiButton />
+      <AskAiSheet />
     </SafeAreaProvider>
   );
 }

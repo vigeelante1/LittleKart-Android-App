@@ -1,7 +1,7 @@
 // Data layer without a database: the shared seed catalog plus in-memory customers, addresses and carts.
 // Used by the tests and when DATABASE_URL is not set. Everything is lost on restart.
 import { sameLabel, type Address, type CartLine, type Order } from '@littlekart/shared';
-import { coupons, seedCatalog } from '@littlekart/shared/seed';
+import { coupons, products as seedProducts, seedCatalog } from '@littlekart/shared/seed';
 import { randomUUID } from 'node:crypto';
 import { Accounts } from '../auth/accounts.js';
 import { OtpStore } from '../auth/otpStore.js';
@@ -123,7 +123,10 @@ export function memoryData(options: MemoryOptions = {}): DataLayer {
       products: async (subCategoryId, query) => seedCatalog.products(subCategoryId, query),
       byIds: async (ids) => seedCatalog.byIds(ids),
       recommendations: async (cartIds) => seedCatalog.recommendations(cartIds),
+      swaps: async (lines) => seedCatalog.swaps(lines),
+      related: async (productId) => seedCatalog.related(productId),
       search: async (query) => seedCatalog.search(query),
+      all: async () => seedProducts,
     },
     otps: options.otps ?? new OtpStore(),
     accounts: options.accounts ?? new Accounts(),

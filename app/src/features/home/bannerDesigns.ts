@@ -1,5 +1,5 @@
 // Our own offer banner designs (iteration 2, DECISIONS D-81), keyed by banner id from the catalog.
-// Photos are free-licensed Wikimedia Commons images bundled in assets/banners, credited in CREDITS.md.
+// Pictures are drawn for this app in the home-tile style (DECISIONS D-99), bundled in assets/banners (source: tools/tiles/banners.mjs).
 import { strings } from '@/strings';
 import { colors } from '@/theme';
 

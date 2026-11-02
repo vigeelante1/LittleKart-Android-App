@@ -10,9 +10,12 @@ import type {
   Id,
   Order,
   Product,
+  RelatedProducts,
   Section,
   Store,
   SubCategory,
+  SwapLine,
+  SwapOffer,
   User,
 } from '@littlekart/shared';
 
@@ -28,8 +31,15 @@ export interface CatalogStore {
   subCategories(tileId: Id): Promise<SubCategory[]>;
   products(subCategoryId: Id, query?: string): Promise<Product[]>;
   byIds(ids: readonly Id[]): Promise<Product[]>;
+  /** Smart suggestions for a cart (DECISIONS D-90). */
   recommendations(cartIds: readonly Id[]): Promise<Product[]>;
+  /** Swap & save offers for cart lines (DECISIONS D-91). */
+  swaps(lines: readonly SwapLine[]): Promise<SwapOffer[]>;
+  /** Similar and popular products for the product page (DECISIONS D-97). */
+  related(productId: Id): Promise<RelatedProducts>;
   search(query: string): Promise<Product[]>;
+  /** Every product (the Ask AI assistant chooses from the food shelves, DECISIONS D-102). */
+  all(): Promise<Product[]>;
 }
 
 export type IssueResult = { ok: true; code: string } | { ok: false; reason: 'cooldown' | 'hourly_limit' };

@@ -14,6 +14,8 @@ interface OrderRow {
   coupon_code: string | null;
   delivery_otp: string;
   eta_minutes: number;
+  scheduled_start: Date | null;
+  scheduled_end: Date | null;
   created_at: Date;
   items: {
     productId: string;
@@ -40,11 +42,12 @@ const toOrder = (r: OrderRow): Order => ({
   storeId: r.store_id,
   deliveryOtp: r.delivery_otp,
   etaMinutes: r.eta_minutes,
+  ...(r.scheduled_start && r.scheduled_end ? { scheduledFor: { start: r.scheduled_start.getTime(), end: r.scheduled_end.getTime() } } : {}),
 });
 
 export function pgOrders(sql: Sql): OrderStore {
   const select = (where: ReturnType<Sql>) => sql<OrderRow[]>`
-    select o.id, o.status, o.payment_type, o.store_id, o.address, o.bill, o.coupon_code, o.delivery_otp, o.eta_minutes, o.created_at,
+    select o.id, o.status, o.payment_type, o.store_id, o.address, o.bill, o.coupon_code, o.delivery_otp, o.eta_minutes, o.scheduled_start, o.scheduled_end, o.created_at,
       coalesce(json_agg(json_build_object(
         'productId', i.product_id, 'variantId', i.variant_id, 'name', i.name, 'label', i.label, 'imageUrl', i.image_url,
         'itemType', i.item_type, 'price', i.price, 'mrp', i.mrp, 'qty', i.qty
@@ -80,10 +83,11 @@ export function pgOrders(sql: Sql): OrderStore {
               where variant_id = ${item.variantId} and quantity - reserved >= ${item.qty} returning variant_id`;
             if (taken.length === 0) throw new OutOfStock();
           }
-          await tx`insert into orders (id, user_id, request_id, status, payment_type, store_id, address, bill, coupon_code, delivery_otp, eta_minutes, created_at)
+          await tx`insert into orders (id, user_id, request_id, status, payment_type, store_id, address, bill, coupon_code, delivery_otp, eta_minutes, scheduled_start, scheduled_end, created_at)
             values (${order.id}, ${userId}, ${requestId}, ${order.status}, ${order.paymentType}, ${order.storeId},
               ${tx.json(JSON.parse(JSON.stringify(order.address)))}, ${tx.json(JSON.parse(JSON.stringify(order.bill)))},
-              ${order.couponCode ?? null}, ${order.deliveryOtp}, ${order.etaMinutes}, ${new Date(order.createdAt)})`;
+              ${order.couponCode ?? null}, ${order.deliveryOtp}, ${order.etaMinutes},
+              ${order.scheduledFor ? new Date(order.scheduledFor.start) : null}, ${order.scheduledFor ? new Date(order.scheduledFor.end) : null}, ${new Date(order.createdAt)})`;
           for (const [position, i] of order.items.entries()) {
             await tx`insert into order_items (order_id, position, product_id, variant_id, name, label, image_url, item_type, price, mrp, qty)
               values (${order.id}, ${position}, ${i.productId}, ${i.variantId}, ${i.name}, ${i.label}, ${i.imageUrl}, ${i.itemType},

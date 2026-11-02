@@ -4,9 +4,12 @@ import {
   freeDeliveryNudge,
   MAX_UNITS_PER_PRODUCT,
   NO_TIP,
+  scheduleSlots,
   storeClosedLines,
   validateCoupon,
+  type DeliverySlot,
   type Product,
+  type SwapOffer,
   type TipState,
 } from '@littlekart/shared';
 import { router } from 'expo-router';
@@ -25,12 +28,16 @@ import { CouponEntryCard } from '@/features/cart/CouponEntryCard';
 import { EmptyCart } from '@/features/cart/EmptyCart';
 import { FreeDeliveryCard } from '@/features/cart/FreeDeliveryCard';
 import { OftenBought } from '@/features/cart/OftenBought';
+import { SwapDialog } from '@/features/cart/SwapDialog';
+import { SwapStrip } from '@/features/cart/SwapStrip';
+import { useSwaps } from '@/features/cart/useSwaps';
 import { TipCard } from '@/features/cart/TipCard';
 import { billableLines, toPricedLines, useCartBill } from '@/features/cart/useCartBill';
 import { useCoupons } from '@/features/cart/useCoupons';
 import { useRecommendations } from '@/features/cart/useRecommendations';
 import { VariantDialog } from '@/features/category/VariantDialog';
 import { LocationDialog } from '@/features/location/LocationDialog';
+import { SlotSheet } from '@/features/schedule/SlotSheet';
 import { useReopenLocationDialog } from '@/hooks/useReopenLocationDialog';
 import { useCartProducts } from '@/hooks/useCartProducts';
 import { useConfig } from '@/hooks/useConfig';
@@ -38,7 +45,8 @@ import { useNearestStore } from '@/hooks/useNearestStore';
 import { useStoreClosed } from '@/hooks/useStoreClosed';
 import { DOCK_GAP, TRACKING_STRIP_HEIGHT, useDock } from '@/features/dock/useDock';
 import { StoreClosedRibbon } from '@/components/StoreClosedRibbon';
-import { useAuthStore, useCartStore, useCheckoutStore, useLocationStore } from '@/store';
+import { swapKey, useAuthStore, useCartStore, useCheckoutStore, useLocationStore, useSwapStore } from '@/store';
+import type { ResolvedLine } from '@/hooks/useCartProducts';
 import { colors } from '@/theme';
 import { strings } from '@/strings';
 
@@ -57,6 +65,9 @@ export default function CartScreen() {
   const increment = useCartStore((s) => s.increment);
   const decrement = useCartStore((s) => s.decrement);
   const remove = useCartStore((s) => s.remove);
+  const swapLine = useCartStore((s) => s.swap);
+  const replaceAll = useCartStore((s) => s.replaceAll);
+  const dismissSwap = useSwapStore((s) => s.dismiss);
   const user = useAuthStore((s) => s.user);
   const location = useLocationStore((s) => s.selected);
   const signedIn = user !== null;
@@ -69,6 +80,7 @@ export default function CartScreen() {
   const [alert, setAlert] = useState<AlertMessage | null>(null);
   const [stockNote, setStockNote] = useState<StockNote | null>(null);
   const [options, setOptions] = useState<Product | null>(null);
+  const [swapping, setSwapping] = useState<{ item: ResolvedLine; offer: SwapOffer } | null>(null);
 
   const { coupons, failed: couponsFailed } = useCoupons(signedIn);
   const priced = useMemo(() => toPricedLines(items), [items]);
@@ -87,11 +99,39 @@ export default function CartScreen() {
   const { nearest, loading: checkingStore } = useNearestStore();
   const startCheckout = useCheckoutStore((s) => s.start);
   const closedStore = useStoreClosed();
+  // Closed (12 AM – 6 AM): the order can be scheduled for a slot in the next opening hours (D-103).
+  const slots = closedStore ? scheduleSlots(closedStore) : [];
+  const [slotOpen, setSlotOpen] = useState(false);
   const dock = useDock();
   const productIds = useMemo(() => items.map((i) => i.product.id), [items]);
   const recommendations = useRecommendations(productIds);
+  const swaps = useSwaps(items);
   const hideAlert = useCallback(() => setAlert(null), []);
   const openOptions = useCallback((p: Product) => setOptions(p), []);
+
+  // Swap & save (D-91): replace the line, keep the quantity, and offer Undo for a few seconds.
+  const confirmSwap = () => {
+    if (!swapping) return;
+    const { item, offer } = swapping;
+    const variant = offer.product.variants.find((v) => v.id === offer.variantId);
+    const before = lines;
+    setSwapping(null);
+    if (!variant) return;
+    const qty = swapLine(
+      { productId: item.product.id, variantId: item.variant.id },
+      { productId: offer.product.id, variantId: variant.id, stock: variant.stock },
+    );
+    if (qty === 0) return;
+    setAlert({
+      message: strings.cart.swapDone(offer.saving * qty),
+      severity: 'success',
+      action: { label: strings.cart.swapUndo, onPress: () => replaceAll(before) },
+    });
+  };
+  const declineSwap = () => {
+    if (swapping) dismissSwap(swapping.item.product.id, swapping.item.variant.id);
+    setSwapping(null);
+  };
 
   const applyCoupon = (code: string): string | null => {
     const result = validateCoupon(code, coupons ?? [], priced);
@@ -121,22 +161,34 @@ export default function CartScreen() {
       return;
     }
     if (closedStore) {
-      setAlert({ message: storeClosedLines(closedStore).snackbar, severity: 'warning' });
+      if (slots.length > 0) setSlotOpen(true);
+      else setAlert({ message: storeClosedLines(closedStore).snackbar, severity: 'warning' });
       return;
     }
+    goToPayment();
+  };
+  const goToPayment = (slot?: DeliverySlot) => {
+    setSlotOpen(false);
     startCheckout({
       items: billableLines(items),
       bill: cart.bill,
       tip: tip.amount,
       couponCode: applied?.code ?? null,
       orderDate: Date.now(),
+      ...(slot ? { slot } : {}),
     });
     router.push('/payment');
   };
 
   const empty = items.length === 0;
   const blocked = cart.outOfStockCount > 0;
-  const buttonLabel = cart.allUnavailable ? strings.cart.cannotProceed : blocked ? strings.cart.removeOutOfStock : strings.cart.proceedToPay;
+  const buttonLabel = cart.allUnavailable
+    ? strings.cart.cannotProceed
+    : blocked
+      ? strings.cart.removeOutOfStock
+      : slots.length > 0
+        ? strings.schedule.cartButton
+        : strings.cart.proceedToPay;
   // The order-tracking strip sits on top of the bottom bar while an order is on its way.
   const stripSpace = dock.order ? TRACKING_STRIP_HEIGHT + DOCK_GAP : 0;
   const barSpace = (empty ? 16 + insets.bottom : (signedIn ? BAR_SPACE.signedIn : BAR_SPACE.guest) + insets.bottom) + stripSpace;
@@ -161,6 +213,7 @@ export default function CartScreen() {
                   const note =
                     stockNote && stockNote.productId === product.id && stockNote.variantId === variant.id ? stockNote.message : null;
                   const clearNote = () => note && setStockNote(null);
+                  const offer = swaps.get(swapKey(product.id, variant.id));
                   return (
                     <CartLineCard
                       key={`${product.id}-${variant.id}`}
@@ -180,6 +233,7 @@ export default function CartScreen() {
                         setStockNote({ productId: product.id, variantId: variant.id, message: strings.cart.onlyLeft(variant.stock) })
                       }
                       onRemove={() => remove(product.id, variant.id)}
+                      footer={offer ? <SwapStrip offer={offer} onPress={() => setSwapping({ item, offer })} /> : null}
                     />
                   );
                 })}
@@ -217,7 +271,18 @@ export default function CartScreen() {
         <CartBottomBar kind="guest" onLogin={() => router.push('/login')} />
       )}
 
-      <AlertSnackbar alert={alert} onHide={hideAlert} />
+      {closedStore && slots.length > 0 ? (
+        <SlotSheet
+          visible={slotOpen}
+          store={closedStore}
+          slots={slots}
+          confirmLabel={strings.schedule.proceed}
+          onConfirm={goToPayment}
+          onClose={() => setSlotOpen(false)}
+        />
+      ) : null}
+      <AlertSnackbar alert={alert} onHide={hideAlert} durationMs={alert?.action ? 5000 : 3000} />
+      <SwapDialog swap={swapping} onSwap={confirmSwap} onDecline={declineSwap} onClose={() => setSwapping(null)} />
       <ApplyCouponsDialog
         visible={couponsOpen}
         coupons={coupons}

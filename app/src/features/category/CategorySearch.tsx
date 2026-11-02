@@ -2,6 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, interFamily } from '@/theme';
+import { MicButton } from '@/features/voice/MicButton';
 import { strings } from '@/strings';
 
 interface Props {
@@ -36,10 +37,7 @@ export function CategorySearch({ value, onChange, placeholder }: Props) {
           <MaterialIcons name="close" size={20} color={colors.textSlateMuted} />
         </Pressable>
       ) : (
-        // The site's mic starts voice search, which is not built yet (FIDELITY_NOTES).
-        <View style={styles.trailing} accessibilityLabel={strings.category.voiceSearch}>
-          <MaterialIcons name="mic" size={20} color={colors.textSlateMuted} />
-        </View>
+        <MicButton size={20} color={colors.textSlateMuted} style={styles.trailing} onResult={onChange} />
       )}
     </View>
   );

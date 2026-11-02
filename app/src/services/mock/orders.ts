@@ -5,11 +5,12 @@ import {
   codRestrictedItems,
   codUnavailableMessage,
   distanceKm,
+  checkOrderSlot,
   indiaClockLabel,
-  isStoreOpen,
   makeDeliveryOtp,
   makeOrderId,
   quoteOrder,
+  SLOT_UNAVAILABLE_MESSAGE,
   trackingMinutes,
   type Order,
 } from '@littlekart/shared';
@@ -32,7 +33,9 @@ export const mockOrders: OrderRepo = {
       .filter((s) => s.km <= s.store.deliveryRadiusKm)
       .sort((a, b) => a.km - b.km)[0];
     if (!serving) throw new OrderError('not_deliverable', 'This address is outside our delivery area. Please change the address.');
-    if (!isStoreOpen(serving.store)) {
+    const slotCheck = checkOrderSlot(serving.store, input.slotStart);
+    if (!slotCheck.ok && slotCheck.reason === 'slot_unavailable') throw new OrderError('slot_unavailable', SLOT_UNAVAILABLE_MESSAGE);
+    if (!slotCheck.ok) {
       throw new OrderError('store_closed', `${serving.store.name} is not accepting orders right now.`, [
         `Store hours: ${serving.store.openTime} - ${serving.store.closeTime}`,
         `Current store time: ${indiaClockLabel(Date.now())}`,
@@ -73,6 +76,7 @@ export const mockOrders: OrderRepo = {
       storeId: serving.store.id,
       deliveryOtp: makeDeliveryOtp(),
       etaMinutes: trackingMinutes(config.eta, serving.km, itemTypes),
+      ...(slotCheck.slot ? { scheduledFor: slotCheck.slot } : {}),
     };
     orders.unshift(order);
     byRequest.set(input.requestId, order);

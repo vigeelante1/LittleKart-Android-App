@@ -25,13 +25,17 @@ export function AddButton({ onPress, optionsCount = 1, disabled, compact }: Prop
     >
       {hasOptions ? (
         <View style={styles.stack}>
-          <AppText variant="addLabelWithOptions">{strings.product.add}</AppText>
-          <AppText variant="addOptions" style={styles.options}>
+          <AppText variant="addLabelWithOptions" numberOfLines={1}>
+            {strings.product.add}
+          </AppText>
+          <AppText variant="addOptions" numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.8} style={styles.options}>
             {strings.product.optionsShort(optionsCount)}
           </AppText>
         </View>
       ) : (
-        <AppText variant="addLabel">{strings.product.add}</AppText>
+        <AppText variant="addLabel" numberOfLines={1}>
+          {strings.product.add}
+        </AppText>
       )}
     </Pressable>
   );
@@ -48,17 +52,19 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 14,
-    paddingVertical: 4,
+    // Narrow cards (three in a row on small phones) leave little room: keep the side padding small so
+    // "ADD" and "2 options" always stay on one line each, and no vertical padding so both lines fit.
+    paddingHorizontal: 4,
+    paddingVertical: 0,
     borderRadius: 6,
     borderWidth: addBorder,
     borderColor: colors.addGreenBorder,
     backgroundColor: colors.surface,
     boxShadow: shadows.addButton,
   },
-  compact: { width: 88, maxWidth: 88, paddingHorizontal: 12 },
-  stack: { alignItems: 'center' },
-  options: { marginTop: 1.2 },
+  compact: { width: 88, maxWidth: 88 },
+  stack: { alignItems: 'center', alignSelf: 'stretch' },
+  options: { marginTop: 1.2, alignSelf: 'stretch', textAlign: 'center' },
   pressed: { opacity: 0.8 },
   disabled: { opacity: 0.5 },
 });

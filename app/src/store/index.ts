@@ -5,3 +5,4 @@ export type { DeliveryLocation } from './locationStore';
 export { useUiStore } from './uiStore';
 export * from './checkoutStore';
 export * from './trackingStore';
+export { swapKey, useSwapStore } from './swapStore';

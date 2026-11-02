@@ -1,4 +1,5 @@
 // Orders and payment rules, as on littlekart.com (payment page and tracking, read 24 Oct 2026).
+import { slotClock, slotDay, slotTimes, type DeliverySlot } from './schedule';
 import { computeBill, type Bill, type PricedLine } from './bill';
 import { validateCoupon, type CouponCheck } from './coupons';
 import { computeFees, type PricingSettings } from './pricing';
@@ -57,6 +58,8 @@ export interface Order {
   deliveryOtp: string;
   /** "Arriving in N minutes" at the time of ordering. */
   etaMinutes: number;
+  /** Scheduled orders (placed while the store was closed, D-103): the one-hour delivery slot. */
+  scheduledFor?: DeliverySlot;
 }
 
 /** Customer support number when the settings don't give one (placeholder, DECISIONS D-71). */
@@ -160,9 +163,11 @@ export function stageMessage(status: OrderStatus): string {
 
 /** The tracking page and the floating tracking card stop 45 minutes after the order was placed. */
 export const TRACKING_WINDOW_MS = 45 * 60 * 1000;
-export function isTrackable(order: Pick<Order, 'status' | 'createdAt'>, nowMs = Date.now()): boolean {
-  return !isFailedOrder(order.status) && order.status !== 'delivered' && order.status !== 'pending_payment' &&
-    nowMs - order.createdAt < TRACKING_WINDOW_MS;
+export function isTrackable(order: Pick<Order, 'status' | 'createdAt' | 'scheduledFor'>, nowMs = Date.now()): boolean {
+  if (isFailedOrder(order.status) || order.status === 'delivered' || order.status === 'pending_payment') return false;
+  // A scheduled order is followed from the moment it is placed until 45 minutes after its slot ends.
+  if (order.scheduledFor) return nowMs < order.scheduledFor.end + TRACKING_WINDOW_MS;
+  return nowMs - order.createdAt < TRACKING_WINDOW_MS;
 }
 
 /** "Arriving in 12 minutes" (minutes left from the time of ordering, at least 1). */
@@ -172,7 +177,13 @@ export function minutesLeft(order: Pick<Order, 'createdAt' | 'etaMinutes'>, nowM
 export const arrivingIn = (minutes: number) => `Arriving in ${minutes} minute${minutes === 1 ? '' : 's'}`;
 
 /** "Arriving in N minutes", or "Arriving shortly" once the estimate has passed (iteration 2; the site keeps "1 minute"). */
-export function arrivalLabel(order: Pick<Order, 'createdAt' | 'etaMinutes'>, nowMs = Date.now()): string {
+export function arrivalLabel(order: Pick<Order, 'createdAt' | 'etaMinutes' | 'scheduledFor'>, nowMs = Date.now()): string {
+  // Scheduled (D-103): "Arriving today, 8:00 AM - 9:00 AM", then "Arriving by 9:00 AM" during the slot.
+  const slot = order.scheduledFor;
+  if (slot) {
+    if (nowMs < slot.start) return `Arriving ${slotDay(slot.start, nowMs).replace(/^(Today|Tomorrow)$/, (d) => d.toLowerCase())}, ${slotTimes(slot)}`;
+    return nowMs < slot.end ? `Arriving by ${slotClock(slot.end)}` : 'Arriving shortly';
+  }
   const elapsed = (nowMs - order.createdAt) / 60_000;
   return elapsed >= order.etaMinutes ? 'Arriving shortly' : arrivingIn(minutesLeft(order, nowMs));
 }

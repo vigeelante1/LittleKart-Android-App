@@ -483,7 +483,7 @@ New decisions are added at the bottom with the next number. A decision is never 
 - `app/eas.json` has four profiles: **development** (the debug build you use with `npm start`), **preview** (installable APK with the sample data, no server needed), **preview-api** (installable APK using our API on Render) and **production** (Play Store `.aab`, signed with the keystore EAS creates, version code increased automatically). All are built free on Expo's servers (Free plan: 15 Android builds a month). Commands and what to expect are in README "Build an APK you can install".
 - **App ID:** `in.littlekart.app` (placeholder). The live app's ID is `com.littlekart.shoppingcart`; reusing it would clash with the real app on a phone that has it and can't be published by anyone but its owner, so we keep our own ID until you decide.
 - **Permissions:** location (delivery address) and internet only. Expo's default storage, "draw over other apps" and vibration permissions are removed, since the app doesn't use them.
-- **Icon:** still the plain green placeholder (`app/src/assets/placeholders/app-icon.png`, 1024 × 1024); the site has no app-icon image to copy. Replace that file with the founder's icon (same name and size) before a Play Store build. The splash screen uses the real LittleKart logo.
+- **Icon:** replaced by the LittleKart logo icon (D-88).
 - Release builds only call `https://` addresses (Android's default), which our Render API is.
 
 ### D-76 · Iteration 2 begins: fixes from the first phone test
@@ -534,6 +534,182 @@ New decisions are added at the bottom with the next number. A decision is never 
 ### D-84 · Login button in the header
 - **Status:** Made
 - "Login" is now a pill button (person icon + Login) in the same place, height and outline as the round profile button you see after signing in, centred against the greeting block. The header looks the same whether you're signed in or not.
+
+### D-85 · Smarter search (word by word)
+- **Status:** Made (needed for voice search)
+- Search now matches each word of the query on its own, in any order: "maggi noodles" finds "Maggi 2-Minute Masala Noodles", "tomatoes" finds "Tomato", one small typo is forgiven in longer words ("amull butter"), and sizes or filler words are ignored ("I want amul butter 500 gram"). Telugu and Hindi words in names match too. The same rule runs in the app and on the server (`shared/src/search.ts`).
+
+### D-86 · Voice search
+- **Status:** Made (your request)
+- The mic in the Home search bar, the search page and every category search box now opens a "Listening…" pop-up (shared pop-up style, D-83): a pulsing green mic, the words appearing as you speak, and language chips for English, Telugu and Hindi (Hindi removed later, D-92). When you stop talking the words go into the search box and results show; from Home it opens the search page with the results.
+- Uses the phone's own speech service through `expo-speech-recognition` (free, no account; needs internet on most phones). The app now asks for the microphone, with the message "LittleKart uses the microphone only for voice search. No audio is stored." If permission is refused, the pop-up offers "Open Settings"; on phones without a speech service the mic is hidden.
+- Play Store: the listing's privacy section must say the microphone is used only for voice search and no audio is kept.
+
+### D-87 · Order bill uses the server's clock
+- **Status:** Made (bug found while testing)
+- The late-night fee was worked out from a different clock than the store-hours check. Both now use the server's clock, so an order can never get the night fee at noon, or miss it at night.
+
+### D-88 · App icon: the LittleKart logo
+- **Status:** Made (your instruction: "put the littlekart logo on the icon, nothing else")
+- The "littlekart" wordmark (green and orange, as on the website) centred on white. Files in `app/src/assets/icon/`: `adaptive-foreground.png` + white background (Android 8+, every launcher shape), `monochrome.png` (Android 13+ themed icons), `icon.png` (older phones) and `play-store-512.png` (the Play Store listing). The name under the icon stays "LittleKart".
+- The wordmark sits inside Android's safe zone so circle, rounded-square and squircle launchers never clip it. If the founder later sends a dedicated icon file, it replaces these.
+
+### D-89 · Tidier product photos, tested category by category
+- **Status:** Made (your request: photos looked clustered and unprofessional)
+- Every image is now built the same way on a 480 × 480 white square with the same margin all round:
+  - **Cut-out items**: one main item only (a heap of cashews becomes one clear cashew group, scattered pieces are dropped), scaled so the longest side is 78% of the square, centred, soft shadow.
+  - **Loose items** (dal, spices, flowers, dishes): a round crop of the photo, like a bowl seen from above, 80% wide.
+  - **Packs that couldn't be cut out cleanly** (Bingo, Dairy Milk, Corn Flakes…): a rounded-square crop of the pack, 80% wide.
+  - **Drawn cards** (128 products): centred and the same size as the photos.
+- Tests: `shared/test/catalog-categories.test.ts` checks every home category one by one (51 categories, 59 sub-category screens): each has products, valid names, sizes and prices, and every product has its own registered 480 × 480 image; photos come before drawn cards. `tools/check_product_images.py` checks every image's pixels: white margin, centred, not too small. A screen test opened all 59 category screens in the web preview: every product card showed, no broken images.
+
+### D-90 · Smart suggestions in the cart and on the payment page
+- **Status:** Made (your request: "Smart Suggestions on the cart page and a new row on the payment page")
+- "Often bought together" in the cart is no longer a fixed list. It now looks at what is in the cart and suggests what usually goes with it: bread → jam, butter, biscuits, tea; noodles → sauces, cool drinks; chips → cool drinks, namkeen; flowers → pooja items, sweets; chicken → masalas, oil. It takes turns between cart items (most recently added first), gives at most 3 products from one shelf, then adds more from the cart's own shelves, then the popular list. Cart items and sold-out items never show. Meat, sexual wellness and adult diapers are never pushed from another shelf.
+- The payment page gets a "Suggested products" row between the items and the bill: up to 10 of the same suggestions in one sideways row, using the cart's small cards. ADD puts the product in the cart, and the items list and the bill on the payment page update straight away.
+- One rule for the app and the server: `shared/src/suggest.ts` (the shelf pairings are the `COMPLEMENTS` table there). Tests in `shared/test/suggest.test.ts`.
+
+### D-91 · Swap & save (cheaper only, like Zepto)
+- **Status:** Made (your request: "Cheaper one just like Zepto has exactly, as littlekart audience is tier 3 they are price conscious")
+- Under a cart item, a light-green strip "Swap & save ₹X · Try <product>" appears when a cheaper product of the same kind exists. Tapping it opens a pop-up (D-83 design) with the two products side by side, the total saving for the quantity in the cart, and "No thanks" / "Swap". Swap replaces the item in the same spot and keeps the quantity (within its stock and the 30-unit limit); a snackbar says how much was saved and offers "Undo" for 5 seconds. "No thanks" hides that offer until the app is opened again.
+- A swap is offered only when it really saves: at least ₹3 and 3% of the price, a similar pack size (80% to 150% of the size in the cart), and never more per gram/ml/piece. At most one offer per item and three per cart, biggest savings first. Products with a photo are preferred over drawn cards.
+- Which products count as "the same kind" is a hand-picked list (`shared/src/seed/swaps.ts`: sunflower oils, basmati rice, atta, milk, tea, health drinks, instant noodles, juices, bhujia, biscuits, cones, protein bars, parotas, hand wash, toothpaste, soaps, deodorants, pads, adult diapers, condoms, pencils, face wash, dog food). Medicines, meat, vegetables, flowers and loose items are never swapped. With the founder's real catalog, these groups would come from its categories.
+- Logic in `shared/src/swap.ts`, used by the app and by the new API endpoint `GET /swaps`. Tests in `shared/test/swap.test.ts` and `api/test/catalog.test.ts`.
+
+### D-92 · Voice search: English and Telugu only
+- **Status:** Made (your instruction: remove Hindi)
+- The voice pop-up's language chips are now English and తెలుగు. Search still matches Hindi words inside product names when typed.
+
+### D-93 · Alignment fixes from the phone test
+- **Status:** Made (your phone screenshots)
+- ADD buttons on the small three-in-a-row cards (cart, "View more" sheet, payment row): "ADD" and "2 options" now always stay on one line each inside the button.
+- Apply Coupons: the code box shows "Enter coupon code" on one line; the extra "Search" word inside the box was removed (the search icon stays), and the box and Apply button are the same height.
+- Cart bottom bar: "Delivering to" and Change sit on one centre line; the Pay amount and Proceed To Pay share one 48-dp row with even spacing.
+
+### D-94 · One picture style: drawn home tiles and drawn products
+- **Status:** Made (your request: the photos looked random and taken from different websites; you approved the sample style)
+- **Home tiles, top-strip categories and sub-categories (61 pictures)**: drawn for this app in one style: a soft tinted background (each tile's own pastel from the app's tone colours), two or three simple items standing on one floor line, the same side shading, highlight and floor shadow, no brand logos. Source: `tools/tiles/lib.mjs` (drawing kit) and `tools/tiles/tiles.mjs`; `node tools/tiles/build.mjs` renders them to `app/src/assets/tiles/` and writes `tileImages.ts`. The catalog points at them as `asset:t/<id>`.
+- **Products**: the 128 icon cards and 27 weak photos (blurry, cropped, dark or thin, e.g. Ariel, Rin, Wild Stone, pens, foil) are replaced by drawn pictures in the same style (`tools/tiles/products.mjs`, `build-products.mjs`), framed exactly like the photos (`frame.py`: 78% of a white 480 × 480 square, centred, same shadow). Clean photos stay. Their credits were removed from CREDITS.md.
+- Product cards zoom the picture to 122% instead of the site's 145%, so an item is never cut off at the edges.
+- Nothing else changed: tile shapes, sizes, labels, grid, colours and fonts are as before. Tests check every tile, category and sub-category has its registered 480 × 480 picture; the pixel check passes for all 393 product pictures.
+
+### D-95 · One-step import of LittleKart's own catalog
+- **Status:** Made (ready for when the founder shares his product export)
+- `node tools/import-catalog.mjs <products.csv> [<images folder>]` reads a CSV (tile, sub_category, name, size, mrp, price, stock, image), groups sizes into products, frames every photo like ours (`tools/frame-photo.py`), and writes `shared/src/seed/founderCatalog.ts`. When that file has products, the app and the API use it instead of the sample catalog: home tiles without products are hidden, and deals / popular lists are taken from the imported products until the founder picks them. It lists rows it could not place (unknown tile, missing price, missing image).
+- After an import, the tests written for the sample products (ids such as `india-gate-basmati`) need updating to the real ids, and Swap & save groups (D-91) need regrouping with the real products.
+
+### D-96 · Every product picture drawn in one style
+- **Status:** Made (your request: "remove the random images and implement the new style")
+- The remaining 238 product photos are replaced by drawn pictures in the same style as the home tiles (`tools/tiles/products2.mjs`), so all 393 products are drawn and framed the same way (78% of a white 480 × 480 square, centred, same shadow). Each keeps its brand colours (a red Thums Up bottle, a yellow Maggi pack), with no logos or brand artwork.
+- CREDITS.md now lists only the five home-banner photos.
+
+### D-97 · Product page
+- **Status:** Made (your request, laid out from your screenshots of the live LittleKart app)
+- Tapping a product card's picture or text, a deal's picture or a cart line's picture opens `/product/<id>`, which shows, top to bottom:
+  - Back, with round Search and Share buttons.
+  - The picture, swipeable, with dots when there is more than one.
+  - Name, "Net quantity", price with the struck MRP, "₹X OFF" and "(Incl. of all taxes)".
+  - "Select Unit" chips, one per size.
+  - "Add to cart", which becomes a full-width − 1 + bar once added.
+  - The "Fast delivery" card with the delivery time.
+  - "Description" and a "View more info" panel: category, available sizes, type.
+  - "Similar products": same shelf, closest price first.
+  - "Popular in this category": every shelf of the tile, biggest discount first.
+- Each row of cards has ‹ › buttons and "View more", which opens the category. The View Cart bar shows on this page too.
+- One rule for the app and the server: `shared/src/related.ts`, with the new API endpoint `GET /products/:id/related`. Tests in `shared/test/related.test.ts` and `api/test/catalog.test.ts`.
+
+### D-98 · End-to-end test of the whole app
+- **Status:** Done for this iteration
+- `tools/e2e-web.mjs` walks through the web preview of the app in 20 steps. It passed at phone widths 360 and 400 with no errors:
+  - Login with OTP.
+  - Home tiles, a category, switching sub-category, Sort and Filters.
+  - ADD from a card.
+  - The product page: add, +, −, sizes, more info, similar and popular rows, View more, and a missing product.
+  - Search, and opening a deal.
+  - The cart: Swap & save with Undo, suggestions, coupons.
+  - Proceed To Pay, with the payment-page suggestion updating the bill.
+  - Cash on delivery, the submitted order, tracking, and the orders list.
+  - Every home section's categories.
+- All 395 unit tests pass, all 393 product pictures pass the picture check, and lint, type checks and the Android bundle build are clean.
+
+### D-99 · Banner pictures drawn too
+- **Status:** Made (your request: the home banners still showed photos)
+- The five home offer banners (Fresh Meat & Fish, Pooja Flowers, Sweets, Veggies & Fruits, Diwali Store) now use drawn scenes in the same style as the tiles and products (`tools/tiles/banners.mjs`, `node tools/tiles/build-banners.mjs`). The banner cards, colours, text and carousel are unchanged. No photos are left in the app; CREDITS.md says so.
+
+### D-100 · Location pop-up alignment, tested
+- **Status:** Made (your request: the location pop-up must be perfectly aligned)
+- Fixed: in "Change Location", "Saved Addresses" was cut to "Saved Addre…" on phones under about 400 px wide. Both labels now always show in full: side by side when they fit, otherwise "+ Add New Address" moves under the heading. On very narrow phones (under 350 px, e.g. 320) the pop-up keeps 20 px from the screen edges instead of 32, so "Use Current Location" and the search hint stay on one line.
+- `tools/location-test.mjs` measures the pop-ups at 320, 360, 393 and 412 px wide, 29 checks per width, all passing (116/116):
+  - The card is the same distance from both screen edges and centred top to bottom.
+  - The info box, button and search field line up with the card's 24 px padding, and so does the suggestion list.
+  - Nothing sticks out of the card, nothing is cut off with "…", and the search hint fits its field.
+  - The close button sits 16 px inside the top-right corner and the title is clear of it.
+  - "Use Current Location" is centred in "Change Location".
+  - Choosing a suggestion or using the GPS saves the address and closes the pop-up.
+  - The cart's "Change" opens the same pop-up, and "+ Add New Address" opens its page with no sideways scrolling.
+- The end-to-end test (D-98) now runs its clock at 12:30 IST, so checkout is not blocked by the store-hours rule when it is run at night. It still passes 20/20 at 360 and 400 px.
+
+### D-101 · Nutrition tags and Nutritional info (like Zepto)
+- **Status:** Made (your request; your choices: public data, the nutrition-based tag set)
+- **Cards**: the row under the size that the site keeps empty now shows up to two tags when the product's numbers support them, e.g. "High protein · Non-veg" on chicken and "Low sugar · No trans-fat" on chips. No layout change.
+- **Product page**: the same tags as small chips under the price, and a "Nutritional info" card under the details. It has a summary ("This product has 120 calories, 23g protein, 0g carbs, 2.6g fats in every 100 g.") in coloured pills, and "View more" for the full table (energy, protein, carbohydrates, sugars, fat, saturated fat, trans fat, fibre, sodium) with its source.
+- **Tags follow India's FSSAI claim rules (2018)**:
+
+  | Tag | Rule |
+  |---|---|
+  | High protein | ≥ 10.8 g per 100 g (5.4 g per 100 ml) |
+  | High fibre | ≥ 6 g per 100 g, or 3 g per 100 kcal |
+  | Low fat | ≤ 3 g per 100 g (1.5 g per 100 ml) |
+  | Low sugar | ≤ 5 g per 100 g (2.5 g per 100 ml) |
+  | No trans-fat | ≤ 0.2 g, and only when trans fat is reported |
+  | Veg / Non-veg | the product's food type |
+
+  "Low" claims are only made where the nutrient matters, so there is no "low sugar" ghee and no "low fat" cola.
+- **Data (103 food products, nothing made up)**: `shared/src/seed/nutrition.ts`.
+  - **Packaged foods (46)**: the same product's label data on Open Food Facts. Each entry was checked by hand to be that product, and its energy checked against its protein, carbs and fat. Entries for a different product or with inconsistent numbers were left out.
+  - **Fresh and loose foods (57)**: USDA FoodData Central reference values for the named food (vegetables, fruit, chicken, goat meat as mutton, carp for rohu/catla, king mackerel for seer fish, shrimp, eggs, dals, rice, rava, nuts, dates, cumin, oils, ghee, honey).
+  - **No nutrition section**: non-food items and foods without trustworthy data (restaurant dishes, sweets without a matching entry, etc.).
+- **LittleKart's own data**: the catalog import (D-95) now reads optional nutrition columns and uses them instead.
+- **Tests**: rules, data sanity and a new end-to-end step (`shared/test/nutrition.test.ts`, `tools/e2e-web.mjs`).
+
+### D-102 · Ask AI: plan a dish, get the ingredients, confirm, then cart
+- **Status:** Made (your request and choices: Google Gemini free tier, English and Telugu, everyone can use it, guests log in after confirming)
+- **Button**: a green "✦ Ask AI" pill, bottom-right on Home and the category screens, 12 px above the cart bar (or at the bottom when the cart is empty). Pages leave room for it at the end. Not shown on the product, cart, payment or login screens.
+- **Chat**: a bottom sheet in the "View more" style. It opens with "What are you preparing today?…" and a Telugu line, plus four quick prompts. The shopper types or speaks (the same voice pop-up as search, English and Telugu). The assistant asks for the dish, then the number of people, one question at a time.
+- **The list**: ingredients with picture, size, use, price and a − qty + stepper, all ticked. "Goes well with (optional)" items (at most 3) are never ticked. Ingredients the shop doesn't sell are left out quietly: no other product is swapped in, and the chat never says something is missing (your call after the phone test: a "not sold here" line feels negative).
+- **Feels like an AI answering** (your request after the phone test): "Thinking…" while it works, then the reply types out word by word with a blinking green cursor (at most 1.6 s), then the list rows slide in one after another, then the "Add to cart" button appears. Sending a new message shows the current answer in full at once.
+- **Text box**: the hint is "Type a dish…" on one line and the cursor starts top-left; the box grows as you type.
+  - "I already have rice and curd" removes those items. Unticked items and changed quantities stay as the shopper set them when the list updates.
+  - "No suggestions" (English or Telugu) removes the extras for the rest of the chat. This is checked in code, not left to the model.
+- **Nothing reaches the cart until "Add N items to cart · ₹total"**. Then the cart opens. A guest goes to Login first and lands on the cart after logging in.
+- **Answers**: Google Gemini (`gemini-flash-lite-latest`, then `gemini-3.5-flash-lite` when busy; about 1–3 s), with JSON output. Every product, size and quantity it returns is checked against the catalog. Unknown or sold-out products are dropped, quantities stay within 1–10 and the stock, and "not sold" names the shop does sell are removed. Only food, drink, kitchen and pooja shelves are offered.
+- **Backup**: when Gemini can't be reached (no key, no internet, free-tier limit), a built-in list of 32 dishes answers in English or Telugu. It covers biryanis, curries, fish, prawns, egg, sambar, pappu, paneer, idli/dosa, pesarattu, upma, rice dishes, fries, sweets, tea/coffee, a party and pooja.
+- **Where the key lives**:
+  - Server builds (`preview-api`, `production`): `GEMINI_API_KEY` on the API server, which serves `POST /ai/chat`. Each address may send 30 messages per 10 minutes.
+  - Sample-data builds (`preview`, the phone build): there is no server, so the app calls Gemini with `EXPO_PUBLIC_GEMINI_API_KEY`, an EAS environment variable (`preview` environment). It is never written in the repository.
+- **Files**:
+  - shared: `shared/src/ai/*` (catalog, prompt, Gemini client, checks, recipes, built-in answers) and its tests.
+  - API: `api/src/routes/ai.ts` and `api/test/ai.test.ts`.
+  - App: `app/src/features/ai/*`. The voice pop-up now takes its hint and button text as props.
+  - Tools: `tools/ask-ai-test.mjs` (13 browser checks).
+
+### D-103 · Schedule for later while the store is closed (like Swiggy Instamart); Ask AI renamed "Ask Little"
+- **Status:** Made (your request)
+- **When**: only while the store is closed (12:00 AM – 6:00 AM, store hours D-73). In opening hours ordering works exactly as before.
+- **Cart**: the closed sign stays, and the button reads "Schedule Delivery". It opens "Schedule delivery", a bottom sheet in the "View more" style, with one-hour slots for the next opening hours, grouped by day ("Today" after midnight). The slots run 6:00 AM - 7:00 AM … 11:00 PM - 12:00 AM, written like the site's own slots. The button reads "Choose a delivery slot" until one is picked, then "Schedule & Proceed".
+- **Payment page**: a "Scheduled delivery · Today, 8:00 AM - 9:00 AM" card with Change, and the button reads "Schedule Order". Bill, fees, coupons and payment methods are unchanged. If the store closes while someone is on this page, the button reads "Choose a delivery slot".
+- **Checks**: the server (and sample mode) accept an order while closed only with a slot that can still be booked. A slot picked at 5:59 AM still works after 6:00 until the slot ends. Otherwise the answer is "Slot unavailable", with "Choose another slot".
+- **After ordering**:
+  - The tracking strip and page say "Arriving today, 8:00 AM - 9:00 AM", then "Arriving by 9:00 AM" during the slot.
+  - Tracking runs until 45 minutes after the slot.
+  - My Orders → "Scheduled" lists these orders, and the order details say "Scheduled for Today, 8:00 AM - 9:00 AM".
+- **Database**: migration `003_scheduled.sql` adds `scheduled_start` / `scheduled_end` to `orders`. The server applies it by itself at start-up.
+- **Ask AI is now "Ask Little"**: the button, the chat title and the labels. Nothing else changed.
+- **Files**:
+  - shared: `shared/src/schedule.ts` and its tests.
+  - API: `api/src/routes/orders.ts`, `api/src/data/pgOrders.ts`.
+  - App: `app/src/features/schedule/*`, cart, payment, orders and checkout store.
+  - Tools: `tools/schedule-test.mjs` (9 browser checks).
 
 ---
 

@@ -9,12 +9,13 @@ import {
   codRestrictedItems,
   codUnavailableMessage,
   distanceKm,
+  checkOrderSlot,
   indiaClockLabel,
-  isStoreOpen,
   makeDeliveryOtp,
   makeOrderId,
   MAX_UNITS_PER_PRODUCT,
   quoteOrder,
+  SLOT_UNAVAILABLE_MESSAGE,
   trackingMinutes,
   type Order,
   type Store,
@@ -30,6 +31,8 @@ export const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
 
 const orderBody = z.object({
   requestId: z.string().min(8).max(80),
+  /** Scheduled delivery (D-103): start of the chosen one-hour slot, epoch ms. */
+  slotStart: z.number().int().positive().optional(),
   lines: z
     .array(
       z.object({
@@ -89,7 +92,12 @@ export async function orderRoutes(
       return reply.code(409).send({ error: 'not_deliverable', message: 'This address is outside our delivery area. Please change the address.' });
     }
     // The site's "Store Closed" answer, with the hours and the store's current time.
-    if (!isStoreOpen(serving.store, now())) {
+    // Closed: only a scheduled order for a bookable slot (D-103).
+    const slotCheck = checkOrderSlot(serving.store, body.slotStart, now());
+    if (!slotCheck.ok && slotCheck.reason === 'slot_unavailable') {
+      return reply.code(409).send({ error: 'slot_unavailable', message: SLOT_UNAVAILABLE_MESSAGE });
+    }
+    if (!slotCheck.ok) {
       return reply.code(409).send({
         error: 'store_closed',
         message: `${serving.store.name} is not accepting orders right now.`,
@@ -110,6 +118,8 @@ export async function orderRoutes(
       couponCode: body.couponCode,
       coupons,
       settings: config.pricing,
+      // Same clock as the store-hours check, so the late-night fee and closing time always agree.
+      nowMs: now(),
     });
     if (quote.unavailable.length > 0 || quote.items.length === 0) {
       return reply.code(409).send({
@@ -141,6 +151,7 @@ export async function orderRoutes(
       storeId: serving.store.id,
       deliveryOtp: makeDeliveryOtp(),
       etaMinutes: trackingMinutes(config.eta, serving.km, itemTypes),
+      ...(slotCheck.slot ? { scheduledFor: slotCheck.slot } : {}),
     };
     const saved = await orders.create(user.id, body.requestId, order);
     if (saved === 'out_of_stock') {

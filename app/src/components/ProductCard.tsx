@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import {
+  cardTags,
   chipMinutes,
   discountPercent,
   isOutOfStock,
@@ -8,7 +9,8 @@ import {
   savingsAmount,
   type Product,
 } from '@littlekart/shared';
-import { StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useConfig } from '@/hooks/useConfig';
 import { qtyInCart, useCartStore } from '@/store';
 import { colors, hairline, shadows } from '@/theme';
@@ -49,12 +51,20 @@ export function ProductCard({ product, onOpenOptions, layout = 'grid' }: Props) 
   const qty = qtyInCart(lines, product.id, variant.id);
   const canAdd = qty < maxQtyForVariant(lines, product.id, variant.id, variant.stock, MAX_UNITS_PER_PRODUCT);
   const soldOut = isOutOfStock(product);
+  const tags = cardTags(product);
   const compact = layout === 'compact';
   const openOptions = () => onOpenOptions(product);
+  // Tapping the picture or the text opens the product page (iteration 2, DECISIONS D-97).
+  const openProduct = () => router.push({ pathname: '/product/[id]', params: { id: product.id } });
 
   return (
     <View style={[styles.card, compact ? styles.cardCompact : styles.cardGrid, soldOut && styles.soldOut]}>
-      <View style={[styles.imageSection, compact && styles.imageSectionCompact]}>
+      <Pressable
+        onPress={openProduct}
+        accessibilityRole="button"
+        accessibilityLabel={product.name}
+        style={[styles.imageSection, compact && styles.imageSectionCompact]}
+      >
         <View style={[styles.imageClip, compact && styles.imageClipCompact]}>
           <ProductImage
             uri={variant.imageUrl ?? product.imageUrl}
@@ -63,10 +73,10 @@ export function ProductCard({ product, onOpenOptions, layout = 'grid' }: Props) 
           />
         </View>
         {saving > 0 ? <OffRibbon percent={percent} saving={saving} /> : null}
-      </View>
+      </Pressable>
 
       <View style={[styles.content, compact && styles.contentCompact]}>
-        <View style={styles.info}>
+        <Pressable onPress={openProduct} accessibilityRole="none" style={styles.info}>
           <EtaChip minutes={chipMinutes(config.eta, product.itemType)} />
           <PriceChip price={variant.price} mrp={variant.mrp} />
           {saving > 0 ? (
@@ -95,14 +105,21 @@ export function ProductCard({ product, onOpenOptions, layout = 'grid' }: Props) 
               </AppText>
             ) : null}
           </View>
-          {/* The site reserves this row with invisible text ("Only 9 left"); nothing shows. */}
-          <View style={styles.spacer} />
-        </View>
+          {/* The site reserves this row with invisible text ("Only 9 left"). Iteration 2 (D-101): it shows the
+              product's nutrition tags, e.g. "High protein · No trans-fat", when its numbers support them. */}
+          <View style={styles.spacer}>
+            {tags.length > 0 ? (
+              <AppText variant="cardTags" numberOfLines={1}>
+                {tags.map((t) => strings.nutritionTags[t]).join(' · ')}
+              </AppText>
+            ) : null}
+          </View>
+        </Pressable>
 
         <LinearGradient
           colors={[colors.cardBarFadeStart, colors.surface2, colors.surface2]}
           locations={[0, 0.28, 1]}
-          style={styles.bar}
+          style={[styles.bar, compact && styles.barCompact]}
         >
           {options > 1 ? (
             <AddButton onPress={openOptions} optionsCount={options} disabled={soldOut} />
@@ -142,8 +159,9 @@ const styles = StyleSheet.create({
   imageSectionCompact: { minHeight: 118, maxHeight: 118, paddingTop: 8, paddingHorizontal: 8, paddingBottom: 0 },
   imageClip: { width: '100%', height: 126, borderRadius: 8, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   imageClipCompact: { height: 110, borderRadius: 10 },
-  // The site zooms product photos to 145% inside the clip.
-  image: { width: '100%', height: 126, transform: [{ scale: 1.45 }] },
+  // The site zooms product photos to 145% inside the clip; our pictures already fill 78% of their square,
+  // so 122% shows the whole item without cutting its edges (iteration 2, DECISIONS D-94).
+  image: { width: '100%', height: 126, transform: [{ scale: 1.22 }] },
   imageCompact: { height: 110 },
   content: { flex: 1, paddingHorizontal: 8, paddingTop: 4, paddingBottom: 2.8 },
   contentCompact: { paddingBottom: 8 },
@@ -153,7 +171,7 @@ const styles = StyleSheet.create({
   brand: { marginBottom: 0.8, alignSelf: 'stretch' },
   weightRow: { minHeight: 16, marginTop: 1.2, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'stretch' },
   weightWithOptions: { maxWidth: '68%' },
-  spacer: { minHeight: 20, marginTop: 1.2 },
+  spacer: { minHeight: 20, marginTop: 1.2, justifyContent: 'center', alignSelf: 'stretch' },
   bar: {
     minHeight: 44,
     marginTop: 'auto',
@@ -165,4 +183,6 @@ const styles = StyleSheet.create({
     borderTopWidth: hairline,
     borderTopColor: colors.cardBarTop,
   },
+  // Small cards (three in a row): the ADD button uses the card's full inner width so its text fits.
+  barCompact: { paddingHorizontal: 0 },
 });

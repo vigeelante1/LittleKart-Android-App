@@ -1,4 +1,5 @@
 import { discountPercent, formatRupee, MAX_UNITS_PER_PRODUCT, maxQtyForVariant, type Product } from '@littlekart/shared';
+import { router } from 'expo-router';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { PlusButton } from '@/components/PlusButton';
@@ -29,9 +30,15 @@ export function DealCard({ product, width }: Props) {
 
   return (
     <View style={[styles.card, { width }]}>
-      <View style={styles.imageFrame}>
+      {/* Picture opens the product page (iteration 2, DECISIONS D-97). */}
+      <Pressable
+        onPress={() => router.push({ pathname: '/product/[id]', params: { id: product.id } })}
+        accessibilityRole="button"
+        accessibilityLabel={product.name}
+        style={styles.imageFrame}
+      >
         <ProductImage uri={variant.imageUrl ?? product.imageUrl} style={styles.image} accessibilityLabel={product.name} />
-      </View>
+      </Pressable>
       <AppText variant="dealName" numberOfLines={1} style={styles.name}>
         {product.name}
       </AppText>

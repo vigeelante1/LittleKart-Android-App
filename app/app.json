@@ -6,14 +6,15 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
-    "icon": "./src/assets/placeholders/app-icon.png",
+    "icon": "./src/assets/icon/icon.png",
     "platforms": [
       "android"
     ],
     "android": {
       "package": "in.littlekart.app",
       "adaptiveIcon": {
-        "foregroundImage": "./src/assets/placeholders/app-icon.png",
+        "foregroundImage": "./src/assets/icon/adaptive-foreground.png",
+        "monochromeImage": "./src/assets/icon/monochrome.png",
         "backgroundColor": "#FFFFFF"
       },
       "softwareKeyboardLayoutMode": "resize",
@@ -25,7 +26,8 @@
       ],
       "permissions": [
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "plugins": [
@@ -46,6 +48,16 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "Allow LittleKart to use your location to find stores that deliver to you."
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "LittleKart uses the microphone only for voice search. No audio is stored.",
+          "speechRecognitionPermission": "LittleKart uses speech recognition only for voice search.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
         }
       ]
     ],

@@ -2,15 +2,18 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { BackPill } from '@/components/BackPill';
 import { colors, hairline, interFamily, shadows } from '@/theme';
+import { MicButton } from '@/features/voice/MicButton';
 import { strings } from '@/strings';
 
 interface Props {
   value: string;
   onChange: (text: string) => void;
+  /** Opened from a voice search elsewhere: don't pop the keyboard over the results. */
+  autoFocus?: boolean;
 }
 
 /** White search bar with the Back pill inside it, "Search for products", × and mic (littlekart.com /search). */
-export function SearchBar({ value, onChange }: Props) {
+export function SearchBar({ value, onChange, autoFocus = true }: Props) {
   return (
     <View style={styles.bar}>
       <View style={styles.back}>
@@ -21,7 +24,7 @@ export function SearchBar({ value, onChange }: Props) {
         onChangeText={onChange}
         placeholder={strings.search.placeholder}
         placeholderTextColor={colors.inputPlaceholder}
-        autoFocus
+        autoFocus={autoFocus}
         allowFontScaling={false}
         returnKeyType="search"
         selectionColor={colors.brightGreen}
@@ -33,10 +36,7 @@ export function SearchBar({ value, onChange }: Props) {
           <MaterialIcons name="close" size={20} color={colors.textMuted} />
         </Pressable>
       ) : null}
-      {/* Voice search is not built yet (FIDELITY_NOTES). */}
-      <View style={[styles.icon, styles.mic]} accessibilityLabel={strings.category.voiceSearch}>
-        <MaterialIcons name="mic" size={22} color={colors.textGrey} />
-      </View>
+      <MicButton size={22} color={colors.textGrey} style={[styles.icon, styles.mic]} onResult={onChange} />
     </View>
   );
 }

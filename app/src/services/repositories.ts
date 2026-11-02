@@ -2,6 +2,8 @@
 // Two implementations: ./mock (sample data) and ./http (our backend in ../api).
 import type {
   Address,
+  AiMessage,
+  AiReply,
   AppConfig,
   Banner,
   CartLine,
@@ -14,7 +16,10 @@ import type {
   OtpPurpose,
   PaymentType,
   Product,
+  RelatedProducts,
   Section,
+  SwapLine,
+  SwapOffer,
   Store,
   SubCategory,
   User,
@@ -35,6 +40,10 @@ export interface CatalogRepo {
   getProductsByIds(ids: readonly Id[]): Promise<Product[]>;
   /** "Often bought together" for the current cart. */
   getRecommendations(cartProductIds: readonly Id[]): Promise<Product[]>;
+  /** "Swap & save": cheaper products of the same kind for cart lines (DECISIONS D-91). */
+  getSwaps(lines: readonly SwapLine[]): Promise<SwapOffer[]>;
+  /** Product page: similar and popular products (DECISIONS D-97). */
+  getRelated(productId: Id): Promise<RelatedProducts>;
   search(query: string): Promise<Product[]>;
 }
 
@@ -91,6 +100,8 @@ export interface PlaceOrderInput {
   tip: number;
   couponCode?: string;
   paymentType: PaymentType;
+  /** Scheduled delivery (D-103): start of the chosen slot. */
+  slotStart?: number;
 }
 
 /** What the Razorpay checkout needs (test mode keys start with rzp_test_). */
@@ -137,8 +148,14 @@ export class OrderError extends Error {
   }
 }
 
+/** Ask AI (iteration 2, DECISIONS D-102): one chat turn. */
+export interface AiRepo {
+  chat(messages: readonly AiMessage[]): Promise<AiReply>;
+}
+
 export interface Repositories {
   catalog: CatalogRepo;
+  ai: AiRepo;
   auth: AuthRepo;
   address: AddressRepo;
   coupons: CouponRepo;

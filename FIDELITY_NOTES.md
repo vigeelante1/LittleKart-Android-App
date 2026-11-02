@@ -25,13 +25,13 @@ Each item is resolved by checking littlekart.com, your phone, or the founder.
 - The rolling search hint clips mid-scroll exactly as on the site (it is not a bug).
 - Long addresses in the header are cut with "…" after one line, as on the site.
 - The site shows a grey loading picture of Home while it loads. Not drawn yet (rule 7 keeps loading states minimal); to add later if you want it.
-- "View all" in Deals opens the Limited Time Deals page (M10). Tapping a deal card opens the product page on the site, which isn't built yet (not in the screenshots).
+- "View all" in Deals opens the Limited Time Deals page (M10). Tapping a deal card's picture opens the product page (built from your app screenshots, D-97).
 - The mic in the search bar opens Search; the site's voice search is not built.
 - Delivery minutes use straight-line distance; the site uses road distance, so a few addresses may differ by a minute or two.
 
 ## Category and search (M4)
 - **Voice search:** the mic in the category and search bars is shown but does nothing yet (the site starts voice search).
-- **Tapping a product card** does nothing yet: the site opens the product page, which isn't in the screenshots. It comes with that screen.
+- **Tapping a product card** opens the product page (D-97), laid out from your screenshots of the live app; sizes are matched by eye, not measured on the site.
 - **Search extras on the site not built yet:** "Did you mean …?" spelling help, the form to request a missing product, and the Print Zone link.
 - **Search results:** the site's search sometimes shows "15 MINS" on meat and no "(2 options)", because its search returns less data than the category page. We show the same card as the category page (30 MINS for meat, sizes included).
 - **Mutton and most sub-categories** have no products in the sample data, so their grids are empty until the real catalog is loaded.
@@ -43,9 +43,9 @@ Each item is resolved by checking littlekart.com, your phone, or the founder.
 - **Coupon messages** come from the live server, which we don't call. Ours: "Invalid coupon", "Please enter a coupon code", the shortfall hint and the exempt-only line. When some coupons apply, a grey card shows both the hint and the amber "Add ₹N more to apply" line, as the site's code does.
 - **Coupon list while loading:** the site shows grey placeholder cards; ours shows nothing until the list arrives (rule 7).
 - **"Often bought together" while loading:** the site shows shimmering placeholders; ours appears when the list arrives.
-- **Proceed To Pay** opens the payment page (M9). Outside store hours (midnight – 6 AM) the closed sign, warning and disabled "Store closed" button follow the site (D-73). The next-morning delivery slots ("Choose a delivery slot", "Schedule Order") are not built.
+- **Proceed To Pay** opens the payment page (M9). Outside store hours (midnight – 6 AM) the closed sign, warning and disabled "Store closed" button follow the site (D-73). Closed hours now offer one-hour delivery slots (D-103).
 - **Not built yet (site has them):** pick-up at store, the 100 kg cart weight limit, the referral-coupon banner, and the delivery-slot picker. (The out-of-stock and delivery-area checks on the button came with M9.)
-- **Tapping a line's photo** opens the product page on the site; nothing yet (same as cards, M4).
+- **Tapping a line's picture** opens the product page (D-97).
 - **Delivery-fee distance** uses straight-line distance to the nearest store (the site uses its own distance); it only matters near 4.5 and 5 km.
 - **Tip quote** is drawn slanted by the phone, as the browser does (Inter has no italic file loaded on the site either).
 - **Web preview:** the black box around a focused text field is the browser's focus outline; Android doesn't draw it.
@@ -78,12 +78,12 @@ Each item is resolved by checking littlekart.com, your phone, or the founder.
 - **Sample-data mode:** UPI orders are treated as paid at once (no gateway), and orders live only while the app is open.
 - **Snackbar warnings** (out of stock, not deliverable) use MUI's standard warning colours; the exact colours on the site weren't measured.
 - **Floating tracking card**: the site's 135° gradient (green → dark green → orange) is drawn with a normal gradient, so the orange tint may sit slightly differently.
-- **My Orders** loading placeholders are plain grey blocks (the site's pulse animation isn't drawn). "Scheduled" lists no orders (no slots yet).
+- **My Orders** loading placeholders are plain grey blocks (the site's pulse animation isn't drawn). "Scheduled" lists orders placed for a delivery slot (D-103).
 - **Order details** "Download Invoice" is left out (D-71). "Placed on" uses the Indian date format (24/10/2026, 11:45:09 am), as an Indian phone's browser shows it.
 - The tracking page's "Delivery partner" lines, call button, rider position and rating appear only with a rider app (not in iteration 1).
 
 ## Placeholder assets (in `app/src/assets/placeholders/`, neutral, no text)
-`banner.png`, `category.png`, `product.png`, `app-icon.png`. Swap in the founder's files with the same names. The logo and login illustration are now the real ones (D-38).
+`banner.png`, `category.png`, `product.png` (the app icon is now the LittleKart logo, D-88). Swap in the founder's files with the same names. The logo and login illustration are now the real ones (D-38).
 
 ## Intentional differences from the live app (typo and alignment fixes, DECISIONS D-21 / D-31)
 Listed in `DECISIONS.md`. Each one is noted here again when the screen that shows it is built.
@@ -96,3 +96,7 @@ These are deliberate departures from the live app, not fidelity gaps:
 - **Catalog** is our own assortment (D-78, D-79); every product has a bundled image: 267 cleaned-up photos and 126 drawn cards (D-82).
 - **Pop-ups** use our own design (D-83) and **Login** is a pill button (D-84).
 - **Background removal** was done automatically and checked by eye at small size; a few cut-outs may have rough edges on a big screen. Tell me which ones and they can be switched to a drawn card.
+- **Smart suggestions** (D-90) replace the live cart's fixed "Often bought together" list, and the payment page has a new "Suggested products" row.
+- **Swap & save** (D-91) is new: the live app has no swap.
+- **Home tile, category and all product pictures** are drawn in one style (D-94, D-96) instead of the live app's photos, until LittleKart's own catalog is imported (D-95).
+- **Ask AI** (D-102) is new: the live app has no assistant. Telugu text uses the phone's Telugu font (Inter has no Telugu letters), as elsewhere.

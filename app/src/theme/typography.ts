@@ -55,6 +55,8 @@ export const textVariants = {
   cardBrand: { size: 10.24, weight: 400, color: 'mrp', lineHeight: 11.3 },
   cardOptions: { size: 11.52, weight: 500, color: 'textSlateMuted', letterSpacing: -0.046, lineHeight: 13.8 },
   cardWeight: { size: 11.52, weight: 500, color: 'textMuted', letterSpacing: -0.046, lineHeight: 13.8 },
+  // Nutrition tags under the size (iteration 2, DECISIONS D-101).
+  cardTags: { size: 10.56, weight: 600, color: 'greenDeep', letterSpacing: -0.04, lineHeight: 14 },
   addLabel: { size: 14.4, weight: 600, color: 'addGreenText', uppercase: true },
   addLabelWithOptions: { size: 15.68, weight: 600, color: 'addGreenText', letterSpacing: 0.1, lineHeight: 15.7, uppercase: true },
   addOptions: { size: 12, weight: 600, color: 'textSlateMuted', lineHeight: 14.4 },
@@ -301,6 +303,9 @@ export const textVariants = {
   bannerTitle: { size: 26, weight: 800, color: 'white', letterSpacing: -0.5, lineHeight: 30 },
   bannerSub: { size: 13.5, weight: 500, color: 'white', lineHeight: 18 },
   // Pop-ups (iteration 2)
+  voiceTranscript: { size: 18, weight: 700, color: 'text', lineHeight: 26 },
+  voiceChip: { size: 13, weight: 600, color: 'textSlateMuted', lineHeight: 18 },
+  voiceChipActive: { size: 13, weight: 700, color: 'primary', lineHeight: 18 },
   dialogCount: { size: 11, weight: 800, color: 'white', lineHeight: 14 },
   bannerCta: { size: 13.5, weight: 800, color: 'bannerCtaText', lineHeight: 18 },
 
@@ -330,6 +335,44 @@ export const textVariants = {
   reorderAdded: { size: 14, weight: 600, color: 'reorderGreen', lineHeight: 21 },
   muiBody2Semi: { size: 14, weight: 600, color: 'text', lineHeight: 21 },
 
+  // Product page (iteration 2, DECISIONS D-97): sizes from the live app's product screen.
+  pdpName: { size: 20, weight: 700, color: 'text', letterSpacing: -0.2, lineHeight: 26 },
+  pdpNetQty: { size: 15, weight: 500, color: 'textSlateMuted', lineHeight: 22 },
+  pdpPrice: { size: 28, weight: 800, color: 'text', letterSpacing: -0.4, lineHeight: 34 },
+  pdpMrp: { size: 17, weight: 500, color: 'textSlateMuted', lineHeight: 24 },
+  pdpOff: { size: 16, weight: 800, color: 'primaryDark', lineHeight: 22 },
+  pdpTaxes: { size: 14, weight: 500, color: 'textSlateMuted', lineHeight: 20 },
+  pdpLabel: { size: 16, weight: 600, color: 'text', lineHeight: 22 },
+  pdpUnit: { size: 16, weight: 700, color: 'text', lineHeight: 22 },
+  pdpUnitSelected: { size: 16, weight: 700, color: 'primaryDark', lineHeight: 22 },
+  pdpAdd: { size: 18, weight: 800, color: 'white', lineHeight: 24 },
+  pdpFast: { size: 16, weight: 700, color: 'text', lineHeight: 22 },
+  pdpFastNote: { size: 13, weight: 500, color: 'textSlateMuted', lineHeight: 18 },
+  pdpHeading: { size: 18, weight: 800, color: 'text', lineHeight: 24 },
+  pdpBody: { size: 15, weight: 500, color: 'textBody', lineHeight: 22 },
+  pdpMore: { size: 17, weight: 700, color: 'text', lineHeight: 24 },
+  pdpInfoKey: { size: 14, weight: 600, color: 'textSlateMuted', lineHeight: 20 },
+  pdpInfoValue: { size: 14, weight: 600, color: 'text', lineHeight: 20 },
+  pdpSection: { size: 20, weight: 800, color: 'text', letterSpacing: -0.2, lineHeight: 26 },
+  pdpStepper: { size: 20, weight: 800, color: 'white', lineHeight: 24 },
+  // Nutritional info (iteration 2, DECISIONS D-101).
+  pdpTag: { size: 13, weight: 700, color: 'greenDeep', lineHeight: 18 },
+  nutriSummaryLabel: { size: 12, weight: 700, color: 'textSlateMuted', letterSpacing: 1, lineHeight: 16, uppercase: true },
+  nutriText: { size: 15, weight: 500, color: 'textBody', lineHeight: 30 },
+  nutriPill: { size: 14, weight: 700, color: 'text', lineHeight: 20 },
+  nutriRowKey: { size: 14, weight: 500, color: 'textBody', lineHeight: 20 },
+  nutriRowValue: { size: 14, weight: 700, color: 'text', lineHeight: 20 },
+  nutriSource: { size: 12, weight: 500, color: 'textSlateMuted', lineHeight: 17 },
+
+  // Swap & save (iteration 2, DECISIONS D-91): same green and slate as the cart's savings and size text.
+  swapStrip: { size: 13, weight: 800, color: 'greenDeep', lineHeight: 18 },
+  swapHint: { size: 12, weight: 500, color: 'textSlateMuted', lineHeight: 16 },
+  swapLabel: { size: 11, weight: 700, color: 'textSlateMuted', letterSpacing: 0.4, lineHeight: 14, uppercase: true },
+  swapLabelNew: { size: 11, weight: 700, color: 'primary', letterSpacing: 0.4, lineHeight: 14, uppercase: true },
+  swapPriceNew: { size: 16, weight: 800, color: 'primaryDark', lineHeight: 22 },
+  swapPriceOld: { size: 14, weight: 600, color: 'textSlateMuted', lineHeight: 20 },
+  swapSaving: { size: 14, weight: 800, color: 'couponSaveText', lineHeight: 20 },
+
   // Store-closed sign (littlekart.com lk-store-closed-tag, phone layout)
   closedSorry: { size: 24, weight: 700, color: 'white', lineHeight: 30, script: true },
   closedWere: { size: 15, weight: 600, color: 'white', letterSpacing: 0.3, lineHeight: 22.5 },
@@ -337,6 +380,30 @@ export const textVariants = {
   closedBack: { size: 13, weight: 600, color: 'white', letterSpacing: 0.325, lineHeight: 17.55 },
   storeClosedTitle: { size: 14, weight: 700, color: 'alertWarningText', lineHeight: 21 },
   storeClosedBody: { size: 14, weight: 400, color: 'alertWarningText', lineHeight: 21 },
+
+  // Ask AI (iteration 2, DECISIONS D-102): the cart's greens and slates, the pop-ups' sizes.
+  aiFab: { size: 14, weight: 700, color: 'white', letterSpacing: 0.1, lineHeight: 18 },
+  aiTitle: { size: 18, weight: 800, color: 'textSlate', lineHeight: 22 },
+  aiSubtitle: { size: 12, weight: 500, color: 'textSlateMuted', lineHeight: 16 },
+  aiMessage: { size: 14.4, weight: 500, color: 'text', lineHeight: 21 },
+  aiMessageUser: { size: 14.4, weight: 500, color: 'white', lineHeight: 21 },
+  aiMessageMuted: { size: 13, weight: 500, color: 'textSlateMuted', lineHeight: 19 },
+  aiChip: { size: 13, weight: 600, color: 'greenDeep', lineHeight: 18 },
+  aiSection: { size: 11, weight: 700, color: 'textSlateMuted', letterSpacing: 0.4, lineHeight: 14, uppercase: true },
+  aiItemName: { size: 13, weight: 600, color: 'text', lineHeight: 17 },
+  aiItemMeta: { size: 12, weight: 500, color: 'textSlateMuted', lineHeight: 16 },
+  aiItemPrice: { size: 13.5, weight: 800, color: 'primaryDark', lineHeight: 18 },
+  aiQty: { size: 13, weight: 800, color: 'text', lineHeight: 18 },
+  aiButton: { size: 15, weight: 700, color: 'white', lineHeight: 20 },
+
+  // Schedule for later (iteration 2, DECISIONS D-103): the sheets' sizes and the cart's greens.
+  scheduleSub: { size: 13, weight: 500, color: 'textSlateMuted', lineHeight: 18 },
+  scheduleDay: { size: 11, weight: 700, color: 'textSlateMuted', letterSpacing: 0.4, lineHeight: 14, uppercase: true },
+  scheduleChip: { size: 13.5, weight: 600, color: 'textSlate', lineHeight: 18 },
+  scheduleChipOn: { size: 13.5, weight: 700, color: 'white', lineHeight: 18 },
+  scheduleButton: { size: 15, weight: 700, color: 'white', lineHeight: 20 },
+  scheduleCardTitle: { size: 14, weight: 700, color: 'greenDeep', lineHeight: 20 },
+  scheduleCardBody: { size: 14, weight: 600, color: 'text', lineHeight: 20 },
 
   // Generic
   body: { size: 16, weight: 400, color: 'text', lineHeight: 24 },

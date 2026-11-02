@@ -11,6 +11,7 @@ import { useAuthStore, useLocationStore } from '@/store';
 import { colors, hairline, shadows } from '@/theme';
 import type { HeaderTheme } from '@/theme/headerThemes';
 import { strings } from '@/strings';
+import { MicButton } from '@/features/voice/MicButton';
 import { RollingSearchHint } from './RollingSearchHint';
 
 interface Props {
@@ -140,9 +141,12 @@ export function HomeHeader({ theme, greeting, deliveryLabel, searchWords, expand
         >
           <MaterialIcons name="search" size={26} color={theme.searchIcon} style={styles.searchIcon} />
           <View style={styles.flex} />
-          <View style={styles.mic}>
-            <MaterialIcons name="mic" size={22} color={theme.micIcon} />
-          </View>
+          <MicButton
+            size={22}
+            color={theme.micIcon}
+            style={styles.mic}
+            onResult={(q) => router.push({ pathname: '/search', params: { q } })}
+          />
           <RollingSearchHint words={searchWords} color={theme.searchPlaceholder} />
         </Pressable>
       </View>

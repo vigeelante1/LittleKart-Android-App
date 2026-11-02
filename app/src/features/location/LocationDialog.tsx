@@ -2,7 +2,7 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { ActivityIndicator, Keyboard, Modal, Pressable, ScrollView, StyleSheet, TextInput, useWindowDimensions, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, interFamily, shadows, textVariants } from '@/theme';
 import { strings } from '@/strings';
@@ -41,12 +41,15 @@ function LocationDialogContent({ visible, variant, required, onClose }: Props) {
 
   const sheet = keyboard > 0;
   const close = required ? undefined : onClose;
+  // Very narrow phones (under 350 dp, e.g. 320) get 20 px side margins instead of 32, so the button and the
+  // search hint stay on one line (iteration 2, DECISIONS D-100).
+  const narrow = useWindowDimensions().width < 350;
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={() => close?.()}>
       <View style={[styles.root, sheet && { justifyContent: 'flex-end', paddingBottom: keyboard }]}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close} accessibilityRole="none" />
-        <View style={[styles.paper, sheet ? styles.paperSheet : styles.paperCentered, variant === 'change' && styles.paperChange]}>
+        <View style={[styles.paper, sheet ? styles.paperSheet : styles.paperCentered, !sheet && narrow && styles.paperNarrow, variant === 'change' && styles.paperChange]}>
           {!required ? (
             <Pressable
               onPress={onClose}
@@ -90,7 +93,7 @@ function WelcomeBody({ picker }: { picker: LocationPicker }) {
             style={({ pressed }) => [styles.welcomeButton, pressed && styles.pressed]}
           >
             <MaterialIcons name="my-location" size={20} color={colors.white} style={styles.startIcon} />
-            <AppText variant="welcomeButton" color={picker.locating ? 'disabledText' : 'white'}>
+            <AppText variant="welcomeButton" color={picker.locating ? 'disabledText' : 'white'} numberOfLines={1}>
               {picker.locating ? strings.location.fetching : strings.location.useCurrent}
             </AppText>
           </Pressable>
@@ -139,9 +142,10 @@ function ChangeBody({ picker, onClose }: { picker: LocationPicker; onClose: () =
         ) : (
           <>
             {picker.saved.length > 0 ? <View style={styles.divider} /> : null}
-            {/* Alignment fix (DECISIONS D-21 fix 4): both labels on one line each. */}
+            {/* Alignment fix (DECISIONS D-21 fix 4, D-100): both labels on one line each, never cut off; on narrow
+                phones "+ Add New Address" moves under the heading instead of squeezing it. */}
             <View style={[styles.savedHeader, picker.saved.length === 0 && styles.mt8]}>
-              <AppText variant="savedHeading" numberOfLines={1}>
+              <AppText variant="savedHeading" numberOfLines={1} style={styles.savedTitle}>
                 {strings.location.saved}
               </AppText>
               <Pressable onPress={addNew} disabled={picker.locating} accessibilityRole="button" style={styles.addNew}>
@@ -245,6 +249,7 @@ const styles = StyleSheet.create({
   paper: { backgroundColor: colors.surface, boxShadow: shadows.locationDialog, maxHeight: '90%' },
   // MUI Dialog: 32 px from the screen edges.
   paperCentered: { marginHorizontal: 32, borderRadius: 24 },
+  paperNarrow: { marginHorizontal: 20 },
   paperChange: { borderRadius: 24 },
   paperSheet: { marginHorizontal: 0, borderTopLeftRadius: 20, borderTopRightRadius: 20, borderRadius: 0, maxHeight: '70%' },
   close: {
@@ -277,7 +282,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     borderRadius: 14,
     backgroundColor: colors.welcomeGreen,
     boxShadow: shadows.welcomeButton,
@@ -303,8 +308,10 @@ const styles = StyleSheet.create({
   selecting: { flexDirection: 'row', alignItems: 'center', gap: 8, marginTop: 6 },
   message: { marginTop: 12 },
   divider: { height: 1, backgroundColor: colors.border },
-  savedHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 },
-  addNew: { paddingVertical: 4, paddingHorizontal: 5, flexShrink: 0 },
+  savedHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', columnGap: 8, rowGap: 2 },
+  savedTitle: { flexShrink: 0 },
+  // The 5 px side padding is pulled back so the label's text lines up with the card's 24 px edge.
+  addNew: { paddingVertical: 4, paddingHorizontal: 5, marginHorizontal: -5, flexShrink: 0 },
   savedList: { gap: 8 },
   savedItem: {
     flexDirection: 'row',

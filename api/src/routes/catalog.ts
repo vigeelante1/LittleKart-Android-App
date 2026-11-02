@@ -4,6 +4,8 @@
 //   GET /subcategories/:id/products?q=     → Product[]
 //   GET /products?ids=a,b                  → Product[]
 //   GET /recommendations?cart=a,b          → Product[]   ("Often bought together")
+//   GET /products/:id/related             → { similar, popular }  (product page, DECISIONS D-97)
+//   GET /swaps?lines=p1:v1,p2:v2           → SwapOffer[]  ("Swap & save", DECISIONS D-91)
 //   GET /search?q=                         → Product[]
 import type { FastifyInstance } from 'fastify';
 import type { CatalogStore } from '../data/types.js';
@@ -20,5 +22,16 @@ export async function catalogRoutes(app: FastifyInstance, { catalog }: { catalog
   );
   app.get<{ Querystring: { ids?: string } }>('/products', async (req) => catalog.byIds(list(req.query.ids).slice(0, 100)));
   app.get<{ Querystring: { cart?: string } }>('/recommendations', async (req) => catalog.recommendations(list(req.query.cart)));
+  app.get<{ Params: { id: string } }>('/products/:id/related', async (req) => catalog.related(req.params.id.slice(0, 100)));
+  app.get<{ Querystring: { lines?: string } }>('/swaps', async (req) =>
+    catalog.swaps(
+      list(req.query.lines)
+        .slice(0, 100)
+        .flatMap((pair) => {
+          const [productId, variantId] = pair.split(':');
+          return productId && variantId ? [{ productId, variantId }] : [];
+        }),
+    ),
+  );
   app.get<{ Querystring: { q?: string } }>('/search', async (req) => catalog.search(text(req.query.q)));
 }

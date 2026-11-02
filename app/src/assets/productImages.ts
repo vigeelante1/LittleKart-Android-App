@@ -1,5 +1,5 @@
 // Generated (iteration 2, DECISIONS D-82): bundled product images, one per product id.
-// Photos: Open Food Facts / Wikimedia Commons, background removed (credits in CREDITS.md). Cards: drawn for this app.
+// All drawn for this app (tools/tiles, DECISIONS D-96).
 export const productImages: Record<string, number> = {
   '3-roses': require('./products/3-roses.webp'),
   'aachi-chicken-masala': require('./products/aachi-chicken-masala.webp'),

@@ -9,6 +9,8 @@ export const radius = {
 
 export const shadows = {
   none: '0px 0px 0px rgba(0, 0, 0, 0)',
+  pdpAdd: '0px 10px 22px rgba(12, 131, 31, 0.24)',
+  pdpRound: '0px 2px 10px rgba(15, 23, 42, 0.10)',
   mapClose: '0px 8px 20px rgba(15, 23, 42, 0.18)',
   pinLabel: '0px 2px 6px rgba(255, 255, 255, 0.5)',
   currentLocation: '0px 2px 8px rgba(15, 23, 42, 0.18)',

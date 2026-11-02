@@ -1,4 +1,5 @@
 import type { Product } from '@littlekart/shared';
+import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -15,7 +16,9 @@ import { strings } from '@/strings';
 
 /** Search (DESIGN_SPEC S13; littlekart.com /search): bar with Back pill, then filter chips and the product grid. */
 export default function SearchScreen() {
-  const [text, setText] = useState('');
+  // "q" arrives from voice search on Home (DECISIONS D-86).
+  const { q } = useLocalSearchParams<{ q?: string }>();
+  const [text, setText] = useState(typeof q === 'string' ? q : '');
   const search = useProductSearch(text);
   const listing = useListing(search.products, search.query);
   const [options, setOptions] = useState<Product | null>(null);
@@ -34,7 +37,7 @@ export default function SearchScreen() {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.header}>
-          <SearchBar value={text} onChange={setText} />
+          <SearchBar value={text} onChange={setText} autoFocus={!q} />
         </View>
 
         {hasResults ? (

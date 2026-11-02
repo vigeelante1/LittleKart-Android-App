@@ -96,12 +96,10 @@ function ApplyCouponsContent({ visible, coupons, loadError, lines, onClose, onAp
                 autoCorrect={false}
                 returnKeyType="done"
                 allowFontScaling={false}
+                numberOfLines={1}
                 selectionColor={colors.brightGreen}
                 style={styles.input}
               />
-              <AppText variant="muiCaption" style={styles.searchHint}>
-                {strings.coupons.searchHint}
-              </AppText>
             </View>
             <Pressable
               onPress={() => apply(code)}
@@ -246,24 +244,35 @@ const styles = StyleSheet.create({
   close: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   flexShrink: { flexShrink: 1 },
   content: { paddingTop: 14, paddingHorizontal: 24 },
-  inputRow: { flexDirection: 'row', gap: 8, marginBottom: 16 },
+  inputRow: { flexDirection: 'row', alignItems: 'stretch', gap: 8, marginBottom: 16 },
   field: {
     flex: 1,
     minWidth: 0,
-    height: 40,
+    height: 44,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     borderRadius: 12,
     borderWidth: hairline,
     borderColor: colors.inputOutline,
     backgroundColor: colors.surface2,
   },
   searchIcon: { marginRight: 8 },
-  input: { flex: 1, minWidth: 0, height: 40, paddingVertical: 0, fontFamily: interFamily(400), fontSize: 16, color: colors.text },
-  searchHint: { marginLeft: 8 },
+  input: {
+    flex: 1,
+    minWidth: 0,
+    height: 44,
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    fontFamily: interFamily(400),
+    fontSize: 15,
+    color: colors.text,
+    textAlignVertical: 'center',
+    includeFontPadding: false,
+  },
   applyButton: {
     minWidth: 84,
+    height: 44,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',

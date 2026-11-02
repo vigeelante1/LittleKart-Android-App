@@ -3,82 +3,25 @@
 // "asset:<role>" images are bundled placeholders in the app until the founder provides real images (D-24).
 import type { Banner, Category, Product, Section, SubCategory, Tile } from '../types';
 import { assortment } from './assortment';
-import { productImage, withImages } from './images';
+import { founderProducts, founderSubCategories } from './founderCatalog';
+import { withImages } from './images';
+import { nutritionById } from './nutrition';
 
-const CAT = 'asset:category';
 
 /** Iteration 2: tiles, sub-categories and strip icons show the photo of one of their products (DECISIONS D-80). */
-const iconProduct: Record<string, string> = {
-  'flowers': 'marigold-garland',
-  'pooja-store': 'deepam-oil',
-  'fresh-meat-fish': 'chicken-curry-skin',
-  'restaurants': 'res-chicken-biryani',
-  'sweets': 'almond-house-kaju',
-  'homemade-batters': 'id-idli-batter',
-  'home-made-snacks-pickles': 'amma-murukulu',
-  'veggies-fruits': 'tomato',
-  'dairy-bread-eggs': 'amul-butter',
-  'pet-food': 'pedigree-adult',
-  'oil-ghee': 'freedom-sunflower',
-  'atta-dal-rice': 'daawat-basmati',
-  'cereals-breakfast': 'kelloggs-cornflakes',
-  'noodles-pasta': 'maggi-masala',
-  'tea-coffee': 'red-label',
-  'spices-masalas': 'everest-garam',
-  'dry-fruits': 'cashew-w320',
-  'frozen-food': 'mccain-fries',
-  'household-essentials': 'harpic',
-  'cool-drinks': 'thums-up',
-  'juices': 'real-guava',
-  'ice-cream-desserts': 'kwality-magnum',
-  'chips': 'lays-magic-masala',
-  'namkeens': 'haldiram-aloo-bhujia',
-  'chocolates': 'dairy-milk',
-  'snack-sweets': 'chikki-peanut',
-  'sauces-spreads': 'nutella',
-  'biscuits-cookies': 'good-day-cashew',
-  'protein-bar': 'yoga-bar-protein',
-  'paan-corner': 'saunf-mix',
-  'stationery': 'classmate-long-book',
-  'print-zone': 'print-colour',
-  'sports': 'kashmir-willow-bat',
-  'tissues-disposable': 'origami-tissue',
-  'electronics': 'philips-led-9w',
-  'decoration-kits': 'diyas-clay',
-  'crackers': 'sparklers',
-  'sexual-wellness': 'durex-extra-thin',
-  'adult-diapers': 'friends-adult-m',
-  'cold-cough-fever': 'vicks-vaporub',
-  'first-aid': 'band-aid',
-  'gut-care': 'eno-lemon',
-  'hand-wash': 'dettol-handwash',
-  'medical-devices': 'pulse-oximeter',
-  'oral-care': 'closeup-red',
-  'baby-care': 'pampers-pants-m',
-  'bath-body': 'medimix-soap',
-  'feminine-hygiene': 'carefree-liners',
-  'fragrances': 'fogg-black',
-  'grooming': 'philips-trimmer',
-  'skin-care': 'himalaya-neem-face',
-  'chicken': 'chicken-curry-skin',
-  'mutton': 'mutton-boneless',
-  'fish': 'catla-fish',
-  'books-charts': 'classmate-long-book',
-  'pens-pencils': 'reynolds-045',
-  'stationery-items': 'kangaro-stapler',
-  'toys': 'funskool-ludo',
-  'umbrellas-raincoats': 'umbrella-3fold',
-  'gift-wrap': 'satin-ribbon',
-  'lunch-hydration': 'milton-bottle',
-  'pooja-flowers': 'marigold-garland',
-  'food-meat': 'chicken-curry-skin',
-  'groceries-kitchen': 'tomato',
-  'snacks-drinks': 'lays-magic-masala',
-  'stationery-sports': 'kashmir-willow-bat',
-  'health-wellness': 'vicks-vaporub',
-  'beauty-personal-care': 'ponds-cream',
+// Home tiles, top-strip categories and sub-categories use drawn pictures in one style (DECISIONS D-94),
+// bundled in the app as app/src/assets/tiles/<id>.webp. A top-strip category shows its most typical tile.
+const categoryTile: Record<string, string> = {
+  'pooja-flowers': 'flowers',
+  'food-meat': 'fresh-meat-fish',
+  'groceries-kitchen': 'veggies-fruits',
+  'snacks-drinks': 'chips',
+  'stationery-sports': 'stationery',
+  'health-wellness': 'cold-cough-fever',
+  'beauty-personal-care': 'skin-care',
 };
-const icon = (id: string): string => (iconProduct[id] ? productImage(iconProduct[id]) : CAT);
+export const tileImage = (id: string): string => `asset:t/${categoryTile[id] ?? id}`;
+const icon = tileImage;
 const PRODUCT = 'asset:product';
 const BANNER = 'asset:banner';
 
@@ -204,7 +147,7 @@ export const banners: Banner[] = [
 export const searchHints = ['Mango', 'Milk', 'Rice', 'Shampoo', 'IceCream', 'Spinach'];
 
 /** Left-rail sub-categories for each tile. Only tiles seen in the screenshots are filled in. */
-export const subCategoriesByTile: Record<string, SubCategory[]> = {
+const sampleSubCategories: Record<string, SubCategory[]> = {
   'fresh-meat-fish': [
     { id: 'chicken', name: 'Chicken', imageUrl: icon('chicken') },
     { id: 'mutton', name: 'Mutton', imageUrl: icon('mutton') },
@@ -256,11 +199,26 @@ const replicaProducts: Product[] = [
   { id: 'heritage-curd', categoryId: 'dairy-bread-eggs', name: 'Heritage Total Curd Pouch', imageUrl: PRODUCT, itemType: 'product', couponExempt: false, variants: [v('hc-450', '450g or 500g', 50)] },
 ];
 
-/** Replica products first (their ids are in old orders), then the iteration-2 assortment, with photos applied. */
-export const products: Product[] = withImages([...replicaProducts, ...assortment]);
+/**
+ * LittleKart's own catalog when it has been imported (tools/import-catalog.mjs, DECISIONS D-95); otherwise the
+ * replica products first (their ids are in old orders), then the iteration-2 assortment, with pictures applied.
+ */
+const usingFounderCatalog = founderProducts.length > 0;
+/** Adds the sourced nutrition facts (DECISIONS D-101) to products that have them. */
+const withNutrition = (list: Product[]): Product[] =>
+  list.map((p) => (nutritionById[p.id] && !p.nutrition ? { ...p, nutrition: nutritionById[p.id] } : p));
+export const products: Product[] = withNutrition(usingFounderCatalog ? founderProducts : withImages([...replicaProducts, ...assortment]));
+export const subCategoriesByTile: Record<string, SubCategory[]> = usingFounderCatalog ? founderSubCategories : sampleSubCategories;
+const known = new Set(products.map((p) => p.id));
+/**
+ * With LittleKart's catalog the hand-picked deal and popular lists below don't apply: deals are the first
+ * products with an MRP above the price, and the popular list the first products, until the founder picks them.
+ */
+const pickList = (sample: string[], size: number, fits: (p: Product) => boolean): string[] =>
+  usingFounderCatalog ? products.filter(fits).slice(0, size).map((p) => p.id) : sample.filter((id) => known.has(id));
 
 // Iteration 2: the live six first, then deals across the new assortment (all have an MRP above the price).
-export const dealProductIds = [
+export const dealProductIds = pickList([
   'chikkudu',
   'watermelon',
   'allam',
@@ -275,10 +233,10 @@ export const dealProductIds = [
   'cashew-w320',
   'red-label',
   'fanta-orange',
-];
+], 14, (p) => p.variants.some((v) => v.mrp !== undefined && v.mrp > v.price));
 
 // More than 6, so the cart shows "View more" as the live cart does with its 20 suggestions.
-export const recommendationIds = [
+export const recommendationIds = pickList([
   'amul-butter',
   'aashirvaad-chilli',
   'heritage-curd',
@@ -295,4 +253,10 @@ export const recommendationIds = [
   'dairy-milk',
   'heritage-milk',
   'thums-up',
-];
+], 16, () => true);
+
+// With LittleKart's catalog, home tiles that got no products are hidden (and sections left empty).
+if (usingFounderCatalog) {
+  for (const s of sections) s.tiles = s.tiles.filter((t) => (founderSubCategories[t.id]?.length ?? 0) > 0);
+  for (let i = sections.length - 1; i >= 0; i--) if (sections[i]?.tiles.length === 0) sections.splice(i, 1);
+}

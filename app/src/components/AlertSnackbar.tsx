@@ -8,6 +8,8 @@ import { AppText } from './AppText';
 export interface AlertMessage {
   message: string;
   severity: 'success' | 'info' | 'warning';
+  /** Text button before the ×, e.g. "Undo" after a swap (D-91). */
+  action?: { label: string; onPress: () => void };
 }
 
 interface Props {
@@ -42,6 +44,21 @@ export function AlertSnackbar({ alert, onHide, durationMs = 3000 }: Props) {
         <AppText variant="alertMessage" color={tone.text} style={styles.message}>
           {alert.message}
         </AppText>
+        {alert.action ? (
+          <Pressable
+            onPress={() => {
+              alert.action?.onPress();
+              onHide();
+            }}
+            accessibilityRole="button"
+            hitSlop={6}
+            style={styles.action}
+          >
+            <AppText variant="muiButton" color={tone.text}>
+              {alert.action.label}
+            </AppText>
+          </Pressable>
+        ) : null}
         <Pressable onPress={onHide} accessibilityRole="button" accessibilityLabel={strings.common.close} hitSlop={6} style={styles.close}>
           <MaterialIcons name="close" size={20} color={colors[tone.text]} />
         </Pressable>
@@ -55,5 +72,6 @@ const styles = StyleSheet.create({
   alert: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 6, paddingHorizontal: 16, borderRadius: 4 },
   icon: { marginRight: 12, paddingVertical: 7, opacity: 0.9 },
   message: { flex: 1, paddingVertical: 8 },
+  action: { marginLeft: 8, paddingHorizontal: 6, paddingVertical: 6, marginTop: 2 },
   close: { marginLeft: 16, marginRight: -8, padding: 5, marginTop: 4 },
 });

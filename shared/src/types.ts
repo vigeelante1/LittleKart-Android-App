@@ -65,6 +65,26 @@ export interface Product {
   variants: Variant[];
   /** Exempt categories (meat) do not count toward coupon minimums. */
   couponExempt: boolean;
+  /** Nutrition per 100 g / 100 ml, when known (iteration 2, DECISIONS D-101). */
+  nutrition?: Nutrition;
+}
+
+/** Nutrition facts per 100 g (or 100 ml for drinks), from a named public source. */
+export interface Nutrition {
+  per: '100g' | '100ml';
+  energyKcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  sugars?: number;
+  saturatedFat?: number;
+  transFat?: number;
+  fibre?: number;
+  sodiumMg?: number;
+  /** Indian food type (green / brown dot), when known. */
+  diet?: 'veg' | 'nonVeg';
+  /** Where the numbers come from, e.g. "Open Food Facts" or "USDA FoodData Central: Okra, raw". */
+  source: string;
 }
 
 /** A line in the cart. Quantity limits are enforced by `limits.ts`. */

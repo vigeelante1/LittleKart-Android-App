@@ -1,6 +1,9 @@
 // Data layer on PostgreSQL (Neon in production; DECISIONS D-65). Same answers as memory.ts.
 import {
+  findSwaps,
   matchesQuery,
+  relatedProducts,
+  suggestProducts,
   OTP_LENGTH,
   OTP_RESEND_SECONDS,
   type Address,
@@ -17,6 +20,7 @@ import {
   type Tile,
   type User,
 } from '@littlekart/shared';
+import { drawnCardIds, nutritionById, swapGroupOf } from '@littlekart/shared/seed';
 import { createHash, randomBytes, randomInt, timingSafeEqual } from 'node:crypto';
 import { MAX_SENDS_PER_HOUR, MAX_VERIFY_ATTEMPTS, OTP_TTL_MS } from '../auth/otpStore.js';
 import type { Sql } from '../db/client.js';
@@ -53,6 +57,8 @@ const toProduct = (r: ProductRow): Product => ({
     ...(v.imageUrl ? { imageUrl: v.imageUrl } : {}),
     stock: Math.max(0, v.stock),
   })),
+  // Nutrition is reference data kept with the catalog source (DECISIONS D-101), not in the database.
+  ...(nutritionById[r.id] ? { nutrition: nutritionById[r.id] } : {}),
 });
 
 interface AddressRow {
@@ -160,7 +166,27 @@ export function pgData(sql: Sql): DataLayer {
       byIds,
 
       async recommendations(cartIds) {
-        return byIds((await list('recommendations')).filter((id) => !cartIds.includes(id)));
+        // Same rule as sample mode; the catalog is small enough to rank in memory.
+        const [all, popular] = await Promise.all([loadProducts(sql`true`), list('recommendations')]);
+        return suggestProducts(cartIds, all, popular);
+      },
+
+      async swaps(lines) {
+        const ids = [...new Set(lines.flatMap((l) => swapGroupOf(l.productId)))];
+        const found = await byIds([...new Set([...ids, ...lines.map((l) => l.productId)])]);
+        return findSwaps(lines, new Map(found.map((p) => [p.id, p])), swapGroupOf, (p) => !drawnCardIds.has(p.id));
+      },
+
+      async related(productId) {
+        const all = await loadProducts(sql`true`);
+        const product = all.find((p) => p.id === productId);
+        if (!product) return { similar: [], popular: [], tileId: null };
+        const shelf = await sql<{ tile_id: string }[]>`select tile_id from sub_categories where id = ${product.categoryId}`;
+        const tileId = shelf[0]?.tile_id;
+        const shelves = tileId
+          ? [tileId, ...(await sql<{ id: string }[]>`select id from sub_categories where tile_id = ${tileId}`).map((r) => r.id)]
+          : [product.categoryId];
+        return relatedProducts(product, all, shelves);
       },
 
       async search(query) {
@@ -168,6 +194,8 @@ export function pgData(sql: Sql): DataLayer {
         // Names hold several languages; the shared matcher keeps search identical to sample mode.
         return (await loadProducts(sql`true`)).filter((p) => matchesQuery(p.name, query));
       },
+
+      all: () => loadProducts(sql`true`),
     },
 
     otps: {

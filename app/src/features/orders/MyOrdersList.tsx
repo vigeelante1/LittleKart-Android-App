@@ -21,8 +21,8 @@ export function MyOrdersList({ embedded }: { embedded: boolean }) {
   const [menu, setMenu] = useState<{ x: number; y: number; order: Order } | null>(null);
   const [itemsOf, setItemsOf] = useState<Order | null>(null);
   const { reorder, busyId, summary, closeSummary } = useReorder();
-  // There are no scheduled (next-morning slot) orders in this build, so "Scheduled" lists none (FIDELITY_NOTES).
-  const shown = filter === 'scheduled' ? [] : orders;
+  // "Scheduled": orders placed for a delivery slot while the store was closed (D-103).
+  const shown = filter === 'scheduled' ? orders.filter((o) => o.scheduledFor) : orders;
 
   const open = (order: Order) =>
     router.push(

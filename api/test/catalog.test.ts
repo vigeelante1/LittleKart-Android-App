@@ -56,6 +56,30 @@ describe('catalog API', () => {
     expect(recs.map((p) => p.id)).not.toContain('banana');
   });
 
+  it('serves similar and popular products for the product page', async () => {
+    const app = await buildApp();
+    const res = (await app.inject({ method: 'GET', url: '/products/good-day-cashew/related' })).json() as {
+      similar: { id: string; categoryId: string }[];
+      popular: { id: string }[];
+    };
+    expect(res.similar.length).toBeGreaterThan(0);
+    expect(res.similar.every((p) => p.categoryId === 'biscuits-cookies' && p.id !== 'good-day-cashew')).toBe(true);
+    expect(res.popular.map((p) => p.id)).not.toContain('good-day-cashew');
+    const missing = (await app.inject({ method: 'GET', url: '/products/nope/related' })).json();
+    expect(missing).toEqual({ similar: [], popular: [], tileId: null });
+  });
+
+  it('offers a cheaper swap for a cart line and ignores bad pairs', async () => {
+    const app = await buildApp();
+    const offers = (await app.inject({ method: 'GET', url: '/swaps?lines=india-gate-basmati:india-gate-basmati-1,junk,allam:allam-1' })).json() as {
+      fromProductId: string;
+      product: { id: string };
+      saving: number;
+    }[];
+    expect(offers).toHaveLength(1);
+    expect(offers[0]).toMatchObject({ fromProductId: 'india-gate-basmati', product: { id: 'daawat-basmati' }, saving: 64 });
+  });
+
   it('searches names in any of their languages', async () => {
     const app = await buildApp();
     const res = (await app.inject({ method: 'GET', url: '/search?q=ginger' })).json() as { id: string }[];

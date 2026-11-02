@@ -3,6 +3,7 @@
 // The logo and login illustration are the live app's own artwork (DECISIONS D-38).
 import type { ImageSource } from 'expo-image';
 import { productImages } from './productImages';
+import { tileImages } from './tileImages';
 
 const placeholders = {
   product: require('./placeholders/product.png'),
@@ -20,10 +21,13 @@ export type PlaceholderRole = keyof typeof placeholders;
 
 const ASSET_PREFIX = 'asset:';
 const PRODUCT_PREFIX = 'asset:p/';
+const TILE_PREFIX = 'asset:t/';
 
 export function resolveImage(uri: string): ImageSource | number {
   // Bundled product image ("asset:p/<product id>", DECISIONS D-82).
   if (uri.startsWith(PRODUCT_PREFIX)) return productImages[uri.slice(PRODUCT_PREFIX.length)] ?? placeholders.product;
+  // Drawn home tile / category picture ("asset:t/<id>", DECISIONS D-94).
+  if (uri.startsWith(TILE_PREFIX)) return tileImages[uri.slice(TILE_PREFIX.length)] ?? placeholders.category;
   if (uri.startsWith(ASSET_PREFIX)) {
     const role = uri.slice(ASSET_PREFIX.length) as PlaceholderRole;
     return placeholders[role] ?? placeholders.product;

@@ -1,5 +1,5 @@
 // Repositories backed by our own API (../api). Endpoint list: api/README.md.
-import type { Address, AppConfig, AuthErrorCode, CartLine, Coupon, Order, Product, SubCategory, User } from '@littlekart/shared';
+import type { Address, AiReply, AppConfig, AuthErrorCode, CartLine, Coupon, Order, Product, RelatedProducts, SubCategory, SwapOffer, User } from '@littlekart/shared';
 import { AuthError, OrderError, type HomeData, type NearestStore, type PlacedOrder, type Repositories } from '../repositories';
 import { api, ApiError, query } from './client';
 
@@ -47,7 +47,13 @@ export const httpRepositories: Repositories = {
       api<Product[]>(`/subcategories/${encodeURIComponent(subCategoryId)}/products${query({ q })}`),
     getProductsByIds: (ids) => api<Product[]>(`/products${query({ ids: ids.join(',') })}`),
     getRecommendations: (cartIds) => api<Product[]>(`/recommendations${query({ cart: cartIds.join(',') })}`),
+    getSwaps: (lines) =>
+      api<SwapOffer[]>(`/swaps${query({ lines: lines.map((l) => `${l.productId}:${l.variantId}`).join(',') })}`),
+    getRelated: (productId) => api<RelatedProducts>(`/products/${encodeURIComponent(productId)}/related`),
     search: (q) => api<Product[]>(`/search${query({ q })}`),
+  },
+  ai: {
+    chat: (messages) => api<AiReply>('/ai/chat', { method: 'POST', body: { messages } }),
   },
   auth: {
     lookup: (phone) => api<{ exists: boolean; name: string }>(`/customers/${encodeURIComponent(phone)}`),

@@ -7,10 +7,14 @@ import { useProductStore } from '@/store/productStore';
 /** The live cart asks for up to 20 suggestions and hides sold-out ones. */
 const MAX_RECOMMENDATIONS = 20;
 
-/** "Often bought together" for the products in the cart. Empty while loading or when there are none. */
-export function useRecommendations(cartProductIds: readonly Id[]): Product[] {
+/**
+ * Smart suggestions (DECISIONS D-90) for the products in the cart: "Often bought together" in the cart and
+ * "Suggested products" on the payment page. Empty while loading or when there are none.
+ */
+export function useRecommendations(cartProductIds: readonly Id[], max = MAX_RECOMMENDATIONS): Product[] {
   const upsert = useProductStore((s) => s.upsert);
-  const key = useMemo(() => [...new Set(cartProductIds)].sort().join(','), [cartProductIds]);
+  // Cart order is kept (most recent first): the suggestions take turns between items in that order.
+  const key = useMemo(() => [...new Set(cartProductIds)].join(','), [cartProductIds]);
   const [result, setResult] = useState<{ key: string; products: Product[] } | null>(null);
 
   useEffect(() => {
@@ -21,13 +25,13 @@ export function useRecommendations(cartProductIds: readonly Id[]): Product[] {
       .then((products) => {
         if (!active) return;
         upsert(products);
-        setResult({ key, products: products.filter((p) => !isOutOfStock(p)).slice(0, MAX_RECOMMENDATIONS) });
+        setResult({ key, products: products.filter((p) => !isOutOfStock(p)).slice(0, max) });
       })
       .catch(() => active && setResult({ key, products: [] }));
     return () => {
       active = false;
     };
-  }, [key, upsert]);
+  }, [key, upsert, max]);
 
   return key && result?.key === key ? result.products : [];
 }

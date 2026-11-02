@@ -1,6 +1,6 @@
 // Sample-data repositories: the shared seed catalog (also served by the API) plus local accounts and addresses.
-import { distanceKm, DUPLICATE_LABEL_MESSAGE, isValidIndianMobile, labelTaken, type Address } from '@littlekart/shared';
-import { seedCatalog } from '@littlekart/shared/seed';
+import { aiChat, distanceKm, DUPLICATE_LABEL_MESSAGE, isValidIndianMobile, labelTaken, type Address } from '@littlekart/shared';
+import { products as seedProducts, seedCatalog } from '@littlekart/shared/seed';
 import { config, coupons, MOCK_OTP, stores } from '@/data/mock/other';
 import { AuthError, type Repositories } from '../repositories';
 import { mockOrders } from './orders';
@@ -19,7 +19,14 @@ export const mockRepositories: Repositories = {
     getProducts: (subCategoryId, query) => later(seedCatalog.products(subCategoryId, query)),
     getProductsByIds: (ids) => later(seedCatalog.byIds(ids)),
     getRecommendations: (cartIds) => later(seedCatalog.recommendations(cartIds)),
+    getSwaps: (lines) => later(seedCatalog.swaps(lines)),
+    getRelated: (productId) => later(seedCatalog.related(productId)),
     search: (query) => later(seedCatalog.search(query)),
+  },
+  // Sample-data builds have no server, so the app asks Gemini itself with the key from the build's
+  // EXPO_PUBLIC_GEMINI_API_KEY (never in the repository). Without it, the built-in recipe list answers.
+  ai: {
+    chat: (messages) => aiChat(messages, seedProducts, { apiKey: process.env.EXPO_PUBLIC_GEMINI_API_KEY }),
   },
   auth: {
     lookup: (phone) => {

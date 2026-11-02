@@ -14,12 +14,14 @@ interface Args {
   name: string;
   /** Cash on Delivery can be offered (below ₹1000, no meat or food). */
   codAllowed: boolean;
+  /** The chosen slot was taken or has passed: open the slot sheet again (D-103). */
+  onSlotUnavailable?: () => void;
 }
 
 const newRequestId = () => `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 
 /** Submit Order on the payment page: places the order, runs Razorpay for UPI / card, and the dialogs. */
-export function usePlaceOrder({ snapshot, location, phone, name, codAllowed }: Args) {
+export function usePlaceOrder({ snapshot, location, phone, name, codAllowed, onSlotUnavailable }: Args) {
   const [method, setMethod] = useState<PaymentType>('UPI');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<OrderErrorState | null>(null);
@@ -78,6 +80,7 @@ export function usePlaceOrder({ snapshot, location, phone, name, codAllowed }: A
           address: { name, phone, text: location.text, lat: location.lat, lng: location.lng },
           tip: snapshot.tip,
           ...(snapshot.couponCode ? { couponCode: snapshot.couponCode } : {}),
+          ...(snapshot.slot ? { slotStart: snapshot.slot.start } : {}),
           paymentType,
         });
         if (result.razorpay) {
@@ -112,6 +115,12 @@ export function usePlaceOrder({ snapshot, location, phone, name, codAllowed }: A
             details: e instanceof OrderError ? e.details : [],
             actions: [{ label: strings.storeClosed.backToCart, onPress: () => go('/cart') }],
           });
+        } else if (code === 'slot_unavailable') {
+          setError({
+            title: strings.schedule.unavailableTitle,
+            message,
+            actions: [{ label: strings.schedule.chooseAnother, onPress: () => onSlotUnavailable?.() }],
+          });
         } else if (code === 'cod_unavailable') {
           setMethod('UPI');
           setError({ title: strings.payment.codUnavailableTitle, message });
@@ -128,7 +137,7 @@ export function usePlaceOrder({ snapshot, location, phone, name, codAllowed }: A
         }
       }
     },
-    [method, codAllowed, snapshot, name, phone, location, finishPlaced, go, codActions, retry],
+    [method, codAllowed, snapshot, name, phone, location, finishPlaced, go, codActions, retry, onSlotUnavailable],
   );
   useEffect(() => {
     submitRef.current = (type) => void submit(type);

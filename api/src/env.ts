@@ -10,6 +10,8 @@ const schema = z.object({
   RAZORPAY_KEY_ID: z.string().optional(),
   RAZORPAY_KEY_SECRET: z.string().optional(),
   RAZORPAY_WEBHOOK_SECRET: z.string().optional(),
+  // Google Gemini key for Ask AI (aistudio.google.com, free tier). Without it Ask AI uses its built-in recipe list.
+  GEMINI_API_KEY: z.string().optional(),
 });
 
 export const env = schema.parse(process.env);

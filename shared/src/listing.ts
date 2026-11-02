@@ -1,5 +1,6 @@
 // Sorting and filtering for product lists (category screen and search), copied from the live site:
 // every rule looks at a product's FIRST size, and out-of-stock products always go last.
+import { matchesSearch } from './search';
 import type { Product } from './types';
 
 export type SortValue = 'relevance' | 'quantity_high_low' | 'price_low_high' | 'price_high_low' | 'discount_high_low';
@@ -118,7 +119,7 @@ export function toggleSize(sizes: readonly string[], label: string): string[] {
 }
 
 /** Lower-case, accent-free text match used by category and product search. */
+/** Search matching: word by word, with plurals and small typos (see search.ts, DECISIONS D-85). */
 export function matchesQuery(name: string, query: string): boolean {
-  const q = query.trim().toLowerCase();
-  return q.length === 0 || name.toLowerCase().includes(q);
+  return matchesSearch(name, query);
 }
