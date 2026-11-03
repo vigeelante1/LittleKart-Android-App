@@ -33,6 +33,8 @@ export interface OrderItem {
   price: number;
   mrp?: number;
   qty: number;
+  /** Added in the 40 seconds after ordering (D-105). */
+  addedLater?: boolean;
 }
 
 export interface OrderAddress {
@@ -60,6 +62,19 @@ export interface Order {
   etaMinutes: number;
   /** Scheduled orders (placed while the store was closed, D-103): the one-hour delivery slot. */
   scheduledFor?: DeliverySlot;
+  /** When the order was placed for good (Cash on Delivery: at once; online: when paid). Starts the add-items window (D-105). */
+  placedAt?: number;
+  /** Items added after ordering, one entry per confirmed add-on (D-105). */
+  addOns?: OrderAddOn[];
+}
+
+export interface OrderAddOn {
+  id: Id;
+  /** Epoch ms. */
+  createdAt: number;
+  paymentType: PaymentType;
+  /** Rupees for the added items (no extra fees). */
+  amount: number;
 }
 
 /** Customer support number when the settings don't give one (placeholder, DECISIONS D-71). */

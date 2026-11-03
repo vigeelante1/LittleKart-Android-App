@@ -1,6 +1,6 @@
 // Repositories backed by our own API (../api). Endpoint list: api/README.md.
 import type { Address, AiReply, AppConfig, AuthErrorCode, CartLine, Coupon, Order, Product, RelatedProducts, SubCategory, SwapOffer, User } from '@littlekart/shared';
-import { AuthError, OrderError, type HomeData, type NearestStore, type PlacedOrder, type Repositories } from '../repositories';
+import { AuthError, OrderError, type AddedItems, type HomeData, type NearestStore, type PlacedOrder, type Repositories } from '../repositories';
 import { api, ApiError, query } from './client';
 
 const authCodes: readonly AuthErrorCode[] = [
@@ -86,6 +86,11 @@ export const httpRepositories: Repositories = {
     place: (input) => withOrderErrors(api<PlacedOrder>('/orders', { method: 'POST', body: input })),
     confirmPayment: async (id, result) =>
       (await withOrderErrors(api<{ order: Order }>(`${orderPath(id)}/payment`, { method: 'POST', body: result }))).order,
+    addItems: (id, input) => withOrderErrors(api<AddedItems>(`${orderPath(id)}/add-on`, { method: 'POST', body: input })),
+    confirmAddOnPayment: async (id, addOnId, result) =>
+      (await withOrderErrors(api<{ order: Order }>(`${orderPath(id)}/add-on/${encodeURIComponent(addOnId)}/payment`, { method: 'POST', body: result }))).order,
+    addOnPaymentFailed: async (id, addOnId) =>
+      (await withOrderErrors(api<{ order: Order }>(`${orderPath(id)}/add-on/${encodeURIComponent(addOnId)}/payment-failed`, { method: 'POST' }))).order,
     paymentFailed: async (id) => (await withOrderErrors(api<{ order: Order }>(`${orderPath(id)}/payment-failed`, { method: 'POST' }))).order,
     list: () => api<Order[]>('/orders'),
     get: async (id) => {

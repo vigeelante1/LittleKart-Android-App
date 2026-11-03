@@ -1,6 +1,11 @@
 // Sample-data orders: priced and checked on the phone with the same shared rules the server uses.
 // There is no payment gateway in this mode, so a UPI / card order is treated as paid at once (FIDELITY_NOTES).
 import {
+  addOnCodAllowed,
+  canAddItems,
+  MAX_UNITS_PER_PRODUCT,
+  orderWithAddOn,
+  quoteAddOn,
   codAllowed,
   codRestrictedItems,
   codUnavailableMessage,
@@ -68,6 +73,8 @@ export const mockOrders: OrderRepo = {
       id: makeOrderId(),
       createdAt: Date.now(),
       status: 'pending',
+      // No payment gateway in sample mode, so every order is placed at once and the add-items window starts now.
+      placedAt: Date.now(),
       paymentType: input.paymentType,
       items: quote.items,
       bill: quote.bill,
@@ -81,6 +88,37 @@ export const mockOrders: OrderRepo = {
     orders.unshift(order);
     byRequest.set(input.requestId, order);
     return later({ order });
+  },
+  addItems: async (orderId, input) => {
+    const index = orders.findIndex((o) => o.id === orderId);
+    const order = orders.at(index);
+    if (index < 0 || !order) throw new OrderError('not_found', 'Order not found.');
+    const done = byRequest.get(input.requestId);
+    if (done) return later({ order: orders.find((o) => o.id === orderId) ?? done });
+    if (!canAddItems(order)) throw new OrderError('add_on_closed', 'The time to add items to this order is over. Your items are still in the cart.');
+    const quote = quoteAddOn(order, input.lines, seedCatalog.byIds([...new Set(input.lines.map((l) => l.productId))]));
+    if (quote.overLimit.length > 0) throw new OrderError('limit_reached', `You can order at most ${MAX_UNITS_PER_PRODUCT} units of a product.`);
+    if (quote.unavailable.length > 0 || quote.items.length === 0) {
+      throw new OrderError('items_unavailable', 'Some items are no longer available in the requested quantity. Please review them.');
+    }
+    if (input.paymentType === 'Cash on Delivery' && !addOnCodAllowed(order, quote.items)) {
+      throw new OrderError('cod_unavailable', codUnavailableMessage(codRestrictedItems([...order.items, ...quote.items].map((i) => i.itemType))));
+    }
+    // Online add-ons count as paid at once in sample mode (no gateway), as orders do.
+    const updated = orderWithAddOn(order, { id: makeOrderId(), createdAt: Date.now(), paymentType: input.paymentType }, quote.items);
+    orders.splice(index, 1, updated);
+    byRequest.set(input.requestId, updated);
+    return later({ order: updated });
+  },
+  confirmAddOnPayment: async (orderId) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) throw new OrderError('not_found', 'Order not found.');
+    return later(order);
+  },
+  addOnPaymentFailed: async (orderId) => {
+    const order = orders.find((o) => o.id === orderId);
+    if (!order) throw new OrderError('not_found', 'Order not found.');
+    return later(order);
   },
   confirmPayment: async (orderId) => {
     const order = orders.find((o) => o.id === orderId);

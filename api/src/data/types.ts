@@ -9,6 +9,8 @@ import type {
   Coupon,
   Id,
   Order,
+  OrderItem,
+  PaymentType,
   Product,
   RelatedProducts,
   Section,
@@ -83,6 +85,17 @@ export interface MetaStore {
   coupons(): Promise<Coupon[]>;
 }
 
+/** Items added to a placed order (D-105), before they are confirmed. */
+export interface AddOnRecord {
+  id: Id;
+  orderId: Id;
+  /** Same id when the request is sent again, so one tap never adds twice. */
+  requestId: string;
+  paymentType: PaymentType;
+  items: OrderItem[];
+  createdAt: number;
+}
+
 export interface OrderStore {
   /**
    * Saves the order and takes its items out of stock, all or nothing. 'out_of_stock' when stock ran out meanwhile.
@@ -97,11 +110,22 @@ export interface OrderStore {
    * pending_payment (or payment_failed, when the money arrives late) → placed.
    * Returns false when the order wasn't waiting for payment.
    */
-  markPaid(id: Id, paymentId: string): Promise<boolean>;
+  markPaid(id: Id, paymentId: string, placedAt: number): Promise<boolean>;
   /** pending_payment → payment_failed, with the stock put back. */
   markPaymentFailed(id: Id): Promise<boolean>;
   /** Unpaid orders older than `olderThanMs` become payment_failed (stock put back). */
   expirePending(olderThanMs: number): Promise<number>;
+  /**
+   * Takes the add-on's items out of stock, all or nothing ('out_of_stock' otherwise). `confirm` adds them to the
+   * order at once (Cash on Delivery); otherwise the add-on waits for its payment. A repeated `requestId` changes nothing.
+   */
+  addItems(userId: Id, addOn: AddOnRecord, confirm: boolean): Promise<Order | 'out_of_stock'>;
+  attachAddOnGateway(addOnId: Id, gatewayOrderId: string): Promise<void>;
+  findAddOnByGateway(gatewayOrderId: string): Promise<{ addOnId: Id; orderId: Id; userId: Id } | undefined>;
+  /** Paid: the add-on's items join the order. False when it wasn't waiting for payment. */
+  markAddOnPaid(addOnId: Id, paymentId: string): Promise<boolean>;
+  /** Not paid: its stock is put back. */
+  markAddOnFailed(addOnId: Id): Promise<boolean>;
 }
 
 export interface DataLayer {

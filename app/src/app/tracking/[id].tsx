@@ -16,6 +16,8 @@ import { SummaryCard } from '@/features/tracking/SummaryCard';
 import { TrackingHero } from '@/features/tracking/TrackingHero';
 import { useOrderStore } from '@/features/tracking/useOrderStore';
 import { useConfig } from '@/hooks/useConfig';
+import { AddOnBanner } from '@/features/addon/AddOnBanner';
+import { useAddOnWindow } from '@/features/addon/useAddOnWindow';
 import { useNow } from '@/hooks/useNow';
 import { useAuthStore } from '@/store';
 import { colors } from '@/theme';
@@ -28,6 +30,7 @@ export default function TrackingScreen() {
   const user = useAuthStore((s) => s.user);
   const config = useConfig();
   const now = useNow();
+  const addOnWindow = useAddOnWindow();
   const order = useOrder(id);
   const { orders } = useOrders();
   const store = useOrderStore(order);
@@ -60,6 +63,7 @@ export default function TrackingScreen() {
       </Shell>
     );
   }
+  const addOn = addOnWindow;
   // Delivered, failed, cancelled or older than 45 minutes: the site moves on to the order details.
   if (!isTrackable(order, now)) return <Redirect href={{ pathname: '/orders/[id]', params: { id: order.id } }} />;
 
@@ -68,6 +72,16 @@ export default function TrackingScreen() {
     <Shell>
       <ScrollView contentContainerStyle={{ paddingBottom: 24 + insets.bottom }} showsVerticalScrollIndicator={false}>
         <TrackingHero order={order} eta={eta} />
+        {addOn?.order.id === order.id ? (
+          <View style={styles.addOn}>
+            <AddOnBanner
+              title={strings.addOn.bannerTitle}
+              sub={strings.addOn.bannerSub(addOn.left)}
+              button={strings.addOn.addItems}
+              onPress={() => router.navigate('/')}
+            />
+          </View>
+        ) : null}
         <View style={styles.content}>
           <MapSection order={order} eta={eta} store={store} />
           <View style={styles.info}>
@@ -107,6 +121,7 @@ function Shell({ children }: { children: ReactNode }) {
 
 const styles = StyleSheet.create({
   shell: { flex: 1 },
+  addOn: { paddingHorizontal: 12, marginTop: 12 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16 },
   notFound: { padding: 16, gap: 8 },
   retry: { alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 8 },

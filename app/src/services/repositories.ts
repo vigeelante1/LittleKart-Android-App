@@ -125,8 +125,25 @@ export interface RazorpayResult {
   razorpaySignature: string;
 }
 
+/** "Forgot something?" (D-105): items added to a placed order within 40 seconds. */
+export interface AddItemsInput {
+  requestId: string;
+  lines: CartLine[];
+  paymentType: PaymentType;
+}
+
+export interface AddedItems {
+  order: Order;
+  /** Online add-ons: open the checkout for the added amount, then confirm with this id. */
+  addOnId?: Id;
+  razorpay?: RazorpayCheckout;
+}
+
 export interface OrderRepo {
   place(input: PlaceOrderInput): Promise<PlacedOrder>;
+  addItems(orderId: Id, input: AddItemsInput): Promise<AddedItems>;
+  confirmAddOnPayment(orderId: Id, addOnId: Id, result: RazorpayResult): Promise<Order>;
+  addOnPaymentFailed(orderId: Id, addOnId: Id): Promise<Order>;
   confirmPayment(orderId: Id, result: RazorpayResult): Promise<Order>;
   /** The checkout was closed or the payment failed: the order becomes Payment Failed. */
   paymentFailed(orderId: Id): Promise<Order>;

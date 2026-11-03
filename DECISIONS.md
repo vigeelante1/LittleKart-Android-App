@@ -715,6 +715,36 @@ New decisions are added at the bottom with the next number. A decision is never 
 - **Status:** Made (the founder's request)
 - The assistant is now "Ask Chinna" on the button, the chat title and every label, and it calls itself that. "Chinna" is Telugu for "little", used fondly for a younger brother, sister or child, so it feels like the shop's own little helper. Nothing else changed.
 
+### D-105 · "Forgot something?": add items for 40 seconds after ordering (like Zepto and Blinkit)
+- **Status:** Made (your request and choices: 40 seconds, no extra fees, any payment method, the usual Cash on Delivery limit, the original discount kept, not for scheduled orders)
+- **When**: for 40 seconds after an order is placed (Cash on Delivery: at once; online: once it is paid). Only for orders placed while the store is open, never for scheduled orders (D-103).
+- **Where the shopper sees it**:
+  - Tracking page: a "Forgot something?" card with the countdown and "Add items", which goes to Home.
+  - The tracking strip at the bottom reads "Add items to your order · 0:32".
+  - The green cart bar reads "Add to order · 0:32", and the cart page shows the same card.
+- **"Add to your order"** (a bottom sheet in the "View more" style):
+  - shows the cart's items and the added total, with "No extra delivery or other fees";
+  - payment is UPI / Card (its own small payment for the added amount) or Cash on Delivery;
+  - Cash on Delivery follows the usual rule on the whole order (up to ₹1,000, no meat or food), with the same note as on the payment page;
+  - "Add to order · ₹70" adds the items to the same order and opens its tracking.
+- **The order afterwards**: same order number, items added to it, items total and grand total up by the added amount. Fees, tip and coupon discount stay as they were. Order details mark the items "Added later" and show what to pay at the door.
+- **When time runs out**: the countdown and buttons disappear, an open sheet says "Time's up", and anything not added stays in the cart for a new order.
+- **Checks on the server**:
+  - the order must be the shopper's own, still Pending, not scheduled, and within 40 seconds plus 5 seconds of grace for slow networks;
+  - prices, stock and the 30-unit limit are re-checked across the whole order;
+  - stock is taken in one locked transaction;
+  - an unpaid online add-on gives its stock back, and Razorpay's webhook can confirm it too;
+  - a repeated tap never adds twice.
+- **API and data**:
+  - `POST /orders/:id/add-on`, plus `…/add-on/:addOnId/payment` and `…/payment-failed`;
+  - migration `004_add_ons.sql` adds `orders.placed_at`, `order_items.added_later` and an `order_addons` table, and is applied by the server at start-up;
+  - shared rules are in `shared/src/addon.ts`.
+- **Sample-data mode** works the same, with online add-ons counted as paid at once (as orders are, FIDELITY_NOTES).
+- **Tests**:
+  - shared rules;
+  - API tests on both memory and a real PostgreSQL database;
+  - `tools/addon-test.mjs` (7 browser checks at 360 and 400 px).
+
 ---
 
 ## Open questions (answers become decisions above)

@@ -38,6 +38,9 @@ import { useRecommendations } from '@/features/cart/useRecommendations';
 import { VariantDialog } from '@/features/category/VariantDialog';
 import { LocationDialog } from '@/features/location/LocationDialog';
 import { SlotSheet } from '@/features/schedule/SlotSheet';
+import { AddOnBanner } from '@/features/addon/AddOnBanner';
+import { useAddOnStore } from '@/features/addon/addOnStore';
+import { useAddOnWindow } from '@/features/addon/useAddOnWindow';
 import { useReopenLocationDialog } from '@/hooks/useReopenLocationDialog';
 import { useCartProducts } from '@/hooks/useCartProducts';
 import { useConfig } from '@/hooks/useConfig';
@@ -102,6 +105,9 @@ export default function CartScreen() {
   // Closed (12 AM – 6 AM): the order can be scheduled for a slot in the next opening hours (D-103).
   const slots = closedStore ? scheduleSlots(closedStore) : [];
   const [slotOpen, setSlotOpen] = useState(false);
+  // "Forgot something?" (D-105): in the 40 s after ordering, these items can join that order.
+  const addOn = useAddOnWindow();
+  const openAddOn = useAddOnStore((s) => s.setOpen);
   const dock = useDock();
   const productIds = useMemo(() => items.map((i) => i.product.id), [items]);
   const recommendations = useRecommendations(productIds);
@@ -207,6 +213,11 @@ export default function CartScreen() {
             <EmptyCart />
           ) : (
             <>
+              {addOn && signedIn ? (
+                <View style={styles.addOn}>
+                  <AddOnBanner sub={strings.addOn.cartBanner(addOn.left)} button={strings.addOn.cartBar} onPress={() => openAddOn(true)} />
+                </View>
+              ) : null}
               <View style={styles.lines}>
                 {items.map((item) => {
                   const { product, variant, line } = item;
@@ -304,6 +315,7 @@ const styles = StyleSheet.create({
   content: { padding: 14 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 16 },
   lines: { gap: 16 },
+  addOn: { marginBottom: 16 },
   // 40 on the site, where the first card's 15 px top margin collapses into it.
   summary: { marginTop: 25 },
   extras: { marginTop: 20 },

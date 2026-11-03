@@ -7,6 +7,8 @@ import { ProductImage } from '@/components/ProductImage';
 import { useCartProducts } from '@/hooks/useCartProducts';
 import { colors, shadows } from '@/theme';
 import { strings } from '@/strings';
+import { useAddOnStore } from '@/features/addon/addOnStore';
+import { useAddOnWindow } from '@/features/addon/useAddOnWindow';
 import { CART_BAR_HEIGHT } from './useDock';
 
 const MAX_THUMBS = 3;
@@ -16,11 +18,15 @@ export function CartBar() {
   const items = useCartProducts();
   const units = items.reduce((sum, i) => sum + i.line.qty, 0);
   const total = items.filter((i) => i.variant.stock > 0).reduce((sum, i) => sum + i.variant.price * i.line.qty, 0);
+  // In the 40 seconds after ordering, the bar adds these items to that order (D-105).
+  const addOn = useAddOnWindow();
+  const openAddOn = useAddOnStore((s) => s.setOpen);
+  const action = addOn ? `${strings.addOn.cartBar} · ${addOn.left}` : strings.cart.viewCart;
   return (
     <Pressable
-      onPress={() => router.push('/cart')}
+      onPress={() => (addOn ? openAddOn(true) : router.push('/cart'))}
       accessibilityRole="button"
-      accessibilityLabel={`${strings.cart.viewCart}, ${strings.dock.items(units)}, ${formatRupee(total)}`}
+      accessibilityLabel={`${action}, ${strings.dock.items(units)}, ${formatRupee(total)}`}
       style={({ pressed }) => [styles.bar, pressed && styles.pressed]}
     >
       <View style={styles.thumbs}>
@@ -35,7 +41,7 @@ export function CartBar() {
         <AppText variant="dockTotal">{formatRupee(total)}</AppText>
       </View>
       <View style={styles.action}>
-        <AppText variant="dockAction">{strings.cart.viewCart}</AppText>
+        <AppText variant="dockAction">{action}</AppText>
         <MaterialIcons name="chevron-right" size={24} color={colors.white} />
       </View>
     </Pressable>

@@ -5,10 +5,13 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { AppText } from '@/components/AppText';
 import { colors, shadows } from '@/theme';
 import { strings } from '@/strings';
+import { useAddOnWindow } from '@/features/addon/useAddOnWindow';
 import { TRACKING_STRIP_HEIGHT } from './useDock';
 
 /** Slim white strip for the order on its way: ETA, delivery OTP and "Track ›" (replaces the floating card). */
 export function TrackingStrip({ order, now }: { order: Order; now: number }) {
+  const addOn = useAddOnWindow();
+  const counting = addOn?.order.id === order.id;
   return (
     <Pressable
       onPress={() => router.push({ pathname: '/tracking/[id]', params: { id: order.id } })}
@@ -20,8 +23,8 @@ export function TrackingStrip({ order, now }: { order: Order; now: number }) {
         <MaterialIcons name="delivery-dining" size={22} color={colors.primary} />
       </View>
       <View style={styles.text}>
-        <AppText variant="dockEta" numberOfLines={1}>
-          {arrivalLabel(order, now)}
+        <AppText variant={counting ? 'addOnStrip' : 'dockEta'} numberOfLines={1}>
+          {counting ? strings.addOn.strip(addOn.left) : arrivalLabel(order, now)}
         </AppText>
         {order.deliveryOtp ? (
           <AppText variant="dockOtp" numberOfLines={1}>

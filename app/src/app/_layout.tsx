@@ -4,6 +4,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AddOnSheet } from '@/features/addon/AddOnSheet';
 import { AskAiButton } from '@/features/ai/AskAiButton';
 import { AskAiSheet } from '@/features/ai/AskAiSheet';
 import { BottomDock } from '@/features/dock/BottomDock';
@@ -36,6 +37,7 @@ export default function RootLayout() {
       <BottomDock />
       <AskAiButton />
       <AskAiSheet />
+      <AddOnSheet />
     </SafeAreaProvider>
   );
 }

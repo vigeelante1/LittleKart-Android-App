@@ -193,3 +193,97 @@ describe.each(layers)('%s orders', (name, make) => {
     await plain.close();
   });
 });
+
+describe.each(layers)('%s: add items after ordering (D-105)', (name, make) => {
+  let app: Awaited<ReturnType<typeof buildApp>>;
+  let auth: { authorization: string };
+  let clock = NOON;
+  beforeAll(async () => {
+    app = await buildApp({ data: await make(), gateway: fakeGateway(), auth: { reviewPhones: new Set(['*']), reviewOtp: '1234' }, now: () => clock });
+    await app.inject({ method: 'POST', url: '/auth/otp/send', payload: { phone: '9718141442', purpose: 'signup' } });
+    const v = await app.inject({ method: 'POST', url: '/auth/otp/verify', payload: { phone: '9718141442', otp: '1234', purpose: 'signup', name: 'AO' } });
+    auth = { authorization: `Bearer ${(v.json() as { token: string }).token}` };
+  });
+  afterAll(async () => {
+    await app.close();
+  });
+  type O = { id: string; status: string; placedAt?: number; items: { productId: string; addedLater?: boolean }[]; bill: { itemsTotal: number; grandTotal: number; platformFee: number; deliveryFee: number; couponDiscount: number }; addOns?: { paymentType: string; amount: number }[] };
+  const place = async (paymentType: string, extra: Record<string, unknown> = {}) =>
+    (await app.inject({ method: 'POST', url: '/orders', headers: auth, payload: { requestId: rid(), lines: [butter(2)], address: ADDRESS, tip: 0, paymentType, ...extra } })).json() as { order: O; razorpay?: { orderId: string } };
+  const addOn = (id: string, lines: unknown[], paymentType = 'Cash on Delivery', requestId = rid()) =>
+    app.inject({ method: 'POST', url: `/orders/${id}/add-on`, headers: auth, payload: { requestId, lines, paymentType } });
+  const biscuits = { productId: 'parle-g', variantId: 'parle-g-1', qty: 2, addedAt: 1 };
+  const stock = async () =>
+    ((await app.inject({ method: 'GET', url: '/products?ids=parle-g' })).json() as { variants: { stock: number }[] }[])[0]?.variants[0]?.stock;
+
+  it('Cash on Delivery: adds items to the same order with no extra fees, once per request', async () => {
+    clock = NOON;
+    const { order } = await place('Cash on Delivery');
+    expect(order.placedAt).toBe(NOON);
+    const before = await stock();
+    clock = NOON + 30_000;
+    const requestId = rid();
+    const res = await addOn(order.id, [biscuits], 'Cash on Delivery', requestId);
+    expect(res.statusCode).toBe(201);
+    const added = (res.json() as { order: O }).order;
+    expect(added.items.map((i) => [i.productId, i.addedLater ?? false])).toEqual([['amul-butter', false], ['parle-g', true]]);
+    expect(added.bill.itemsTotal).toBe(order.bill.itemsTotal + 60);
+    expect(added.bill.grandTotal).toBe(order.bill.grandTotal + 60);
+    expect([added.bill.platformFee, added.bill.deliveryFee, added.bill.couponDiscount]).toEqual([order.bill.platformFee, order.bill.deliveryFee, order.bill.couponDiscount]);
+    expect(added.addOns).toEqual([expect.objectContaining({ paymentType: 'Cash on Delivery', amount: 60 })]);
+    if (name === 'postgres') expect(await stock()).toBe((before ?? 0) - 2);
+    const again = (await addOn(order.id, [biscuits], 'Cash on Delivery', requestId)).json() as { order: O };
+    expect(again.order.items).toHaveLength(2);
+    const listed = ((await app.inject({ method: 'GET', url: `/orders/${order.id}`, headers: auth })).json() as O);
+    expect(listed.bill.grandTotal).toBe(order.bill.grandTotal + 60);
+  });
+
+  it('closes 40 seconds after placing (5 seconds of grace)', async () => {
+    clock = NOON;
+    const { order } = await place('Cash on Delivery');
+    clock = NOON + 46_000;
+    expect((await addOn(order.id, [biscuits])).json()).toMatchObject({ error: 'add_on_closed' });
+  });
+
+  it('online: the window starts when the order is paid; the add-on has its own payment', async () => {
+    clock = NOON;
+    const { order, razorpay } = await place('UPI');
+    expect((await addOn(order.id, [biscuits])).json()).toMatchObject({ error: 'add_on_closed' });
+    clock = NOON + 60_000;
+    const pay = await app.inject({ method: 'POST', url: `/orders/${order.id}/payment`, headers: auth, payload: { razorpayOrderId: razorpay!.orderId, razorpayPaymentId: 'pay_1', razorpaySignature: sign(razorpay!.orderId, 'pay_1') } });
+    expect((pay.json() as { order: O }).order.placedAt).toBe(NOON + 60_000);
+    clock = NOON + 80_000;
+    const res = (await addOn(order.id, [biscuits], 'UPI')).json() as { order: O; addOnId: string; razorpay: { orderId: string; amount: number } };
+    expect(res.razorpay.amount).toBe(6000);
+    expect(res.order.items).toHaveLength(1);
+    const ok = await app.inject({ method: 'POST', url: `/orders/${order.id}/add-on/${res.addOnId}/payment`, headers: auth, payload: { razorpayOrderId: res.razorpay.orderId, razorpayPaymentId: 'pay_2', razorpaySignature: sign(res.razorpay.orderId, 'pay_2') } });
+    const paid = (ok.json() as { order: O }).order;
+    expect(paid.items).toHaveLength(2);
+    expect(paid.addOns).toEqual([expect.objectContaining({ paymentType: 'UPI', amount: 60 })]);
+  });
+
+  it('a failed add-on payment changes nothing and puts the stock back', async () => {
+    clock = NOON;
+    const { order } = await place('Cash on Delivery');
+    const before = await stock();
+    const res = (await addOn(order.id, [biscuits], 'UPI')).json() as { addOnId: string };
+    await app.inject({ method: 'POST', url: `/orders/${order.id}/add-on/${res.addOnId}/payment-failed`, headers: auth });
+    if (name === 'postgres') expect(await stock()).toBe(before);
+    expect(((await app.inject({ method: 'GET', url: `/orders/${order.id}`, headers: auth })).json() as O).items).toHaveLength(1);
+  });
+
+  it('Cash on Delivery for an add-on follows the whole-order rule', async () => {
+    clock = NOON;
+    const { order } = await place('Cash on Delivery');
+    const meat = await addOn(order.id, [{ productId: 'chicken-boneless', variantId: 'cb-500', qty: 1, addedAt: 1 }]);
+    expect(meat.json()).toMatchObject({ error: 'cod_unavailable' });
+    expect((await addOn(order.id, [{ ...butter(29) }])).json()).toMatchObject({ error: 'limit_reached' });
+  });
+
+  it('not for scheduled orders', async () => {
+    clock = NIGHT;
+    const slot = scheduleSlots({ openTime: '6:00 AM', closeTime: '12:00 AM' }, NIGHT)[2]!;
+    const { order } = await place('Cash on Delivery', { slotStart: slot.start });
+    expect((await addOn(order.id, [biscuits])).json()).toMatchObject({ error: 'add_on_closed' });
+  });
+});

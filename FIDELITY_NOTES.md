@@ -100,3 +100,4 @@ These are deliberate departures from the live app, not fidelity gaps:
 - **Swap & save** (D-91) is new: the live app has no swap.
 - **Home tile, category and all product pictures** are drawn in one style (D-94, D-96) instead of the live app's photos, until LittleKart's own catalog is imported (D-95).
 - **Ask AI** (D-102) is new: the live app has no assistant. Telugu text uses the phone's Telugu font (Inter has no Telugu letters), as elsewhere.
+- **"Forgot something?"** (D-105) is new: add items to a placed order for 40 seconds. The live app has no such window.

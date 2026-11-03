@@ -18,3 +18,4 @@ export * from './related';
 export * from './nutrition';
 export * from './ai';
 export * from './schedule';
+export * from './addon';

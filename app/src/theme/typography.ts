@@ -405,6 +405,14 @@ export const textVariants = {
   scheduleCardTitle: { size: 14, weight: 700, color: 'greenDeep', lineHeight: 20 },
   scheduleCardBody: { size: 14, weight: 600, color: 'text', lineHeight: 20 },
 
+  // Add items after ordering (iteration 2, DECISIONS D-105).
+  addOnBannerTitle: { size: 15, weight: 800, color: 'greenDeep', lineHeight: 20 },
+  addOnBannerSub: { size: 13, weight: 500, color: 'textSlate', lineHeight: 18 },
+  addOnButton: { size: 14, weight: 700, color: 'white', lineHeight: 18 },
+  addOnStrip: { size: 14, weight: 700, color: 'greenDeep', lineHeight: 18 },
+  addOnError: { size: 13, weight: 500, color: 'muiError', lineHeight: 18 },
+  addOnTotal: { size: 16, weight: 800, color: 'text', lineHeight: 22 },
+
   // Generic
   body: { size: 16, weight: 400, color: 'text', lineHeight: 24 },
   bodyMuted: { size: 14, weight: 400, color: 'textMuted', lineHeight: 21 },

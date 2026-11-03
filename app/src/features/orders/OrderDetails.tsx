@@ -1,4 +1,4 @@
-import { canCancel, cannotCancelReason, formatOrderTime, formatPlacedOn, isFailedOrder, slotLabel, stageMessage, statusLabel, SUPPORT_PHONE_FALLBACK, type Order } from '@littlekart/shared';
+import { canCancel, cannotCancelReason, formatRupee, payAtDoor, formatOrderTime, formatPlacedOn, isFailedOrder, slotLabel, stageMessage, statusLabel, SUPPORT_PHONE_FALLBACK, type Order } from '@littlekart/shared';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
@@ -60,11 +60,17 @@ export function OrderDetails({ order, embedded }: { order: Order; embedded: bool
                 {item.name}
               </AppText>
               <AppText variant="muiBody2Muted">{strings.orders.itemQty(item.label, item.qty)}</AppText>
+              {item.addedLater ? <AppText variant="swapLabelNew">{strings.addOn.addedLater}</AppText> : null}
             </View>
             <AppText variant="muiBody1">{strings.orders.unitPrice(item.price)}</AppText>
           </View>
         ))}
       </View>
+      {order.addOns?.length && payAtDoor(order) > 0 ? (
+        <AppText variant="muiBody1Bold" style={styles.count}>
+          {strings.addOn.payAtDoor(formatRupee(payAtDoor(order)))}
+        </AppText>
+      ) : null}
       <View style={styles.divider} />
 
       {showCancellation ? (

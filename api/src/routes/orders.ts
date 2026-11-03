@@ -3,17 +3,22 @@
 //   POST /orders/:id/payment           Razorpay's success response → placed
 //   POST /orders/:id/payment-failed    the customer closed or failed the payment → Payment Failed (stock put back)
 //   GET  /orders, GET /orders/:id      the customer's orders
+//   POST /orders/:id/add-on            "Forgot something?": add items within 40 s of placing (D-105)
+//   POST /orders/:id/add-on/:addOnId/payment, …/payment-failed   the add-on's own online payment
 //   POST /payments/webhook             Razorpay's server-to-server confirmation
 import {
   codAllowed,
   codRestrictedItems,
   codUnavailableMessage,
   distanceKm,
+  addOnCodAllowed,
+  canAddItems,
   checkOrderSlot,
   indiaClockLabel,
   makeDeliveryOtp,
   makeOrderId,
   MAX_UNITS_PER_PRODUCT,
+  quoteAddOn,
   quoteOrder,
   SLOT_UNAVAILABLE_MESSAGE,
   trackingMinutes,
@@ -28,6 +33,19 @@ import { requireUser } from './session.js';
 
 /** Unpaid online orders are given up after 15 minutes and their stock goes back on sale. */
 export const PAYMENT_WINDOW_MS = 15 * 60 * 1000;
+
+const lineSchema = z.object({
+  productId: z.string().min(1).max(100),
+  variantId: z.string().min(1).max(100),
+  qty: z.number().int().min(1).max(MAX_UNITS_PER_PRODUCT),
+  addedAt: z.number().int().nonnegative(),
+});
+
+const addOnBody = z.object({
+  requestId: z.string().min(8).max(80),
+  lines: z.array(lineSchema).min(1).max(100),
+  paymentType: z.enum(['UPI', 'Cash on Delivery']),
+});
 
 const orderBody = z.object({
   requestId: z.string().min(8).max(80),
@@ -143,6 +161,7 @@ export async function orderRoutes(
       id: makeOrderId(),
       createdAt: now(),
       status: body.paymentType === 'Cash on Delivery' ? 'pending' : 'pending_payment',
+      ...(body.paymentType === 'Cash on Delivery' ? { placedAt: now() } : {}),
       paymentType: body.paymentType,
       items: quote.items,
       bill: quote.bill,
@@ -193,7 +212,7 @@ export async function orderRoutes(
       signature: parsed.data.razorpaySignature,
     });
     if (!ok) return reply.code(400).send({ error: 'invalid_signature', message: 'Payment verification failed' });
-    if (await orders.markPaid(found.id, parsed.data.razorpayPaymentId)) await carts.replace(user.id, []);
+    if (await orders.markPaid(found.id, parsed.data.razorpayPaymentId, now())) await carts.replace(user.id, []);
     return { order: await orders.get(user.id, found.id) };
   });
 
@@ -203,6 +222,82 @@ export async function orderRoutes(
     const order = await orders.get(user.id, request.params.id);
     if (!order) return reply.code(404).send({ error: 'not_found' });
     await orders.markPaymentFailed(order.id);
+    return { order: await orders.get(user.id, order.id) };
+  });
+
+  // "Forgot something?" (D-105): items added within 40 seconds of placing, no extra fees, original discount kept.
+  app.post<{ Params: { id: string } }>('/orders/:id/add-on', async (request, reply) => {
+    const user = await requireUser(request, reply, accounts);
+    if (!user) return;
+    const parsed = addOnBody.safeParse(request.body);
+    if (!parsed.success) return reply.code(400).send({ error: 'invalid_order' });
+    const body = parsed.data;
+    const order = await orders.get(user.id, request.params.id);
+    if (!order) return reply.code(404).send({ error: 'not_found' });
+    if (!canAddItems(order, now())) {
+      return reply.code(409).send({ error: 'add_on_closed', message: 'The time to add items to this order is over. Your items are still in the cart.' });
+    }
+    const quote = quoteAddOn(order, body.lines, await catalog.byIds([...new Set(body.lines.map((l) => l.productId))]));
+    if (quote.overLimit.length > 0) {
+      return reply.code(409).send({ error: 'limit_reached', message: `You can order at most ${MAX_UNITS_PER_PRODUCT} units of a product.` });
+    }
+    if (quote.unavailable.length > 0 || quote.items.length === 0) {
+      return reply.code(409).send({
+        error: 'items_unavailable',
+        message: 'Some items are no longer available in the requested quantity. Please review them.',
+        unavailable: quote.unavailable,
+      });
+    }
+    if (body.paymentType === 'Cash on Delivery' && !addOnCodAllowed(order, quote.items)) {
+      return reply.code(400).send({ error: 'cod_unavailable', message: codUnavailableMessage(codRestrictedItems([...order.items, ...quote.items].map((i) => i.itemType))) });
+    }
+    if (body.paymentType === 'UPI' && !gateway) {
+      return reply.code(503).send({ error: 'payment_unavailable', message: ONLINE_UNAVAILABLE });
+    }
+    const cod = body.paymentType === 'Cash on Delivery';
+    const addOn = { id: makeOrderId(), orderId: order.id, requestId: body.requestId, paymentType: body.paymentType, items: quote.items, createdAt: now() };
+    const saved = await orders.addItems(user.id, addOn, cod);
+    if (saved === 'out_of_stock') {
+      return reply.code(409).send({ error: 'items_unavailable', message: 'Some items are no longer available in the requested quantity. Please review them.', unavailable: [] });
+    }
+    if (cod || !gateway) return reply.code(201).send({ order: saved });
+    try {
+      const amountPaise = quote.amount * 100;
+      const gatewayOrder = await gateway.createOrder({ amountPaise, receipt: addOn.id });
+      await orders.attachAddOnGateway(addOn.id, gatewayOrder.id);
+      return reply.code(201).send({ order: saved, addOnId: addOn.id, razorpay: { keyId: gateway.keyId, orderId: gatewayOrder.id, amount: amountPaise } });
+    } catch (error) {
+      request.log.error(error, 'razorpay add-on order failed');
+      await orders.markAddOnFailed(addOn.id);
+      return reply.code(503).send({ error: 'payment_unavailable', message: ONLINE_UNAVAILABLE });
+    }
+  });
+
+  app.post<{ Params: { id: string; addOnId: string } }>('/orders/:id/add-on/:addOnId/payment', async (request, reply) => {
+    const user = await requireUser(request, reply, accounts);
+    if (!user) return;
+    const parsed = paymentBody.safeParse(request.body);
+    if (!parsed.success || !gateway) return reply.code(400).send({ error: 'invalid_payment' });
+    const found = await orders.findAddOnByGateway(parsed.data.razorpayOrderId);
+    if (!found || found.addOnId !== request.params.addOnId || found.orderId !== request.params.id || found.userId !== user.id) {
+      return reply.code(404).send({ error: 'not_found' });
+    }
+    const ok = gateway.verifyPayment({
+      gatewayOrderId: parsed.data.razorpayOrderId,
+      paymentId: parsed.data.razorpayPaymentId,
+      signature: parsed.data.razorpaySignature,
+    });
+    if (!ok) return reply.code(400).send({ error: 'invalid_signature', message: 'Payment verification failed' });
+    await orders.markAddOnPaid(found.addOnId, parsed.data.razorpayPaymentId);
+    return { order: await orders.get(user.id, found.orderId) };
+  });
+
+  app.post<{ Params: { id: string; addOnId: string } }>('/orders/:id/add-on/:addOnId/payment-failed', async (request, reply) => {
+    const user = await requireUser(request, reply, accounts);
+    if (!user) return;
+    const order = await orders.get(user.id, request.params.id);
+    if (!order) return reply.code(404).send({ error: 'not_found' });
+    await orders.markAddOnFailed(request.params.addOnId);
     return { order: await orders.get(user.id, order.id) };
   });
 
@@ -234,10 +329,16 @@ export async function orderRoutes(
       const payment = event.payload?.payment?.entity;
       if (!payment?.order_id) return reply.code(204).send();
       const found = await orders.findByGatewayOrder(payment.order_id);
-      if (!found) return reply.code(204).send();
+      if (!found) {
+        const addOn = await orders.findAddOnByGateway(payment.order_id);
+        if (addOn && (event.event === 'payment.captured' || event.event === 'order.paid')) {
+          await orders.markAddOnPaid(addOn.addOnId, payment.id ?? '');
+        }
+        return reply.code(204).send();
+      }
       // A failed attempt is not final (the customer can retry in the same checkout); unpaid orders expire instead.
       if (event.event === 'payment.captured' || event.event === 'order.paid') {
-        if (await orders.markPaid(found.id, payment.id ?? '')) await carts.replace(found.userId, []);
+        if (await orders.markPaid(found.id, payment.id ?? '', now())) await carts.replace(found.userId, []);
       }
       return reply.code(204).send();
     });

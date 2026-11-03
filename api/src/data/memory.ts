@@ -1,12 +1,12 @@
 // Data layer without a database: the shared seed catalog plus in-memory customers, addresses and carts.
 // Used by the tests and when DATABASE_URL is not set. Everything is lost on restart.
-import { sameLabel, type Address, type CartLine, type Order } from '@littlekart/shared';
+import { orderWithAddOn, sameLabel, type Address, type CartLine, type Order } from '@littlekart/shared';
 import { coupons, products as seedProducts, seedCatalog } from '@littlekart/shared/seed';
 import { randomUUID } from 'node:crypto';
 import { Accounts } from '../auth/accounts.js';
 import { OtpStore } from '../auth/otpStore.js';
 import { appConfig, stores } from '../settings.js';
-import type { AccountStore, AddressStore, CartStore, DataLayer, OrderStore, OtpStore as OtpStoreContract } from './types.js';
+import type { AddOnRecord, AccountStore, AddressStore, CartStore, DataLayer, OrderStore, OtpStore as OtpStoreContract } from './types.js';
 
 export interface MemoryOptions {
   otps?: OtpStoreContract;
@@ -62,6 +62,7 @@ class MemoryCarts implements CartStore {
 /** Orders in memory. The sample catalog's stock is fixed, so stock is not reduced here (it is in PostgreSQL). */
 class MemoryOrders implements OrderStore {
   private readonly orders = new Map<string, { userId: string; requestId: string; order: Order; gatewayOrderId?: string }>();
+  private readonly addOns = new Map<string, { userId: string; record: AddOnRecord; status: 'pending_payment' | 'added' | 'payment_failed'; gatewayOrderId?: string }>();
 
   async create(userId: string, requestId: string, order: Order) {
     for (const o of this.orders.values()) if (o.requestId === requestId) return o.order;
@@ -98,8 +99,48 @@ class MemoryOrders implements OrderStore {
     return true;
   }
 
-  async markPaid(id: string) {
-    return this.move(id, 'pending', ['pending_payment', 'payment_failed']);
+  async markPaid(id: string, _paymentId: string, placedAt: number) {
+    if (!this.move(id, 'pending', ['pending_payment', 'payment_failed'])) return false;
+    const o = this.orders.get(id);
+    if (o) o.order = { ...o.order, placedAt };
+    return true;
+  }
+
+  async addItems(userId: string, record: AddOnRecord, confirm: boolean) {
+    const o = this.orders.get(record.orderId);
+    if (!o || o.userId !== userId) return 'out_of_stock' as const;
+    if ([...this.addOns.values()].some((a) => a.record.requestId === record.requestId)) return o.order;
+    this.addOns.set(record.id, { userId, record, status: confirm ? 'added' : 'pending_payment' });
+    if (confirm) o.order = orderWithAddOn(o.order, record, record.items);
+    return o.order;
+  }
+
+  async attachAddOnGateway(addOnId: string, gatewayOrderId: string) {
+    const a = this.addOns.get(addOnId);
+    if (a) a.gatewayOrderId = gatewayOrderId;
+  }
+
+  async findAddOnByGateway(gatewayOrderId: string) {
+    for (const a of this.addOns.values()) {
+      if (a.gatewayOrderId === gatewayOrderId) return { addOnId: a.record.id, orderId: a.record.orderId, userId: a.userId };
+    }
+    return undefined;
+  }
+
+  async markAddOnPaid(addOnId: string) {
+    const a = this.addOns.get(addOnId);
+    const o = a && this.orders.get(a.record.orderId);
+    if (!a || !o || a.status === 'added') return false;
+    a.status = 'added';
+    o.order = orderWithAddOn(o.order, a.record, a.record.items);
+    return true;
+  }
+
+  async markAddOnFailed(addOnId: string) {
+    const a = this.addOns.get(addOnId);
+    if (!a || a.status !== 'pending_payment') return false;
+    a.status = 'payment_failed';
+    return true;
   }
 
   async markPaymentFailed(id: string) {
@@ -110,6 +151,9 @@ class MemoryOrders implements OrderStore {
     let n = 0;
     for (const o of this.orders.values()) {
       if (o.order.status === 'pending_payment' && Date.now() - o.order.createdAt > olderThanMs && this.move(o.order.id, 'payment_failed')) n += 1;
+    }
+    for (const a of this.addOns.values()) {
+      if (a.status === 'pending_payment' && Date.now() - a.record.createdAt > olderThanMs) a.status = 'payment_failed';
     }
     return n;
   }
