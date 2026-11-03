@@ -39,9 +39,9 @@ await step('login', async () => {
   if (await send.count()) { await send.first().click(); await p.waitForTimeout(1200); }
   await p.locator('input >> visible=true').first().click(); await p.keyboard.type('1234'); await p.waitForTimeout(3500);
 });
-await step('home shows the closed sign and the renamed "Ask Little" button', async () => {
+await step('home shows the closed sign and the renamed "Ask Chinna" button', async () => {
   await vis("We'll be back at 6:00 AM").waitFor({ timeout: 5000 });
-  check((await p.getByRole('button', { name: /^Ask Little: plan/ }).count()) === 1, 'no Ask Little button');
+  check((await p.getByRole('button', { name: /^Ask Chinna: plan/ }).count()) === 1, 'no Ask Chinna button');
   check(!(await text()).includes('Ask AI'), '"Ask AI" still shown');
   await shot('home-closed');
 });

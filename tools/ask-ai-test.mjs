@@ -43,7 +43,7 @@ await p.evaluate(() => {
   localStorage.setItem('lk-location', JSON.stringify({ state: { selected: { label: '', text: 'Nalgonda Bus Stand, Rahamath Nagar, Nalgonda, Telangana 508001', lat: 17.0557, lng: 79.2745 } }, version: 1 }));
 });
 await p.reload({ waitUntil: 'networkidle' }); await p.waitForTimeout(1500);
-const fab = () => p.getByRole('button', { name: /^Ask Little: plan a dish/ });
+const fab = () => p.getByRole('button', { name: /^Ask Chinna: plan a dish/ });
 
 await step('home: Ask AI button bottom-right, inside the screen', async () => {
   const r = await box(fab()); check(r, 'no button');

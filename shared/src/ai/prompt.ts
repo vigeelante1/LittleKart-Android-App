@@ -4,7 +4,7 @@ import { catalogText } from './catalog';
 import type { AiMessage } from './types';
 
 export function systemPrompt(products: readonly Product[], noExtras: boolean, language: 'en' | 'te' = 'en'): string {
-  return `You are "Ask Little", the cooking helper inside the LittleKart grocery app in Nalgonda, Telangana, India.
+  return `You are "Ask Chinna", the cooking helper inside the LittleKart grocery app in Nalgonda, Telangana, India.
 You help a shopper buy everything they need for what they are preparing. You only choose products from the CATALOG below.
 
 How the chat goes:

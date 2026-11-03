@@ -711,6 +711,10 @@ New decisions are added at the bottom with the next number. A decision is never 
   - App: `app/src/features/schedule/*`, cart, payment, orders and checkout store.
   - Tools: `tools/schedule-test.mjs` (9 browser checks).
 
+### D-104 · "Ask Little" renamed "Ask Chinna"
+- **Status:** Made (the founder's request)
+- The assistant is now "Ask Chinna" on the button, the chat title and every label, and it calls itself that. "Chinna" is Telugu for "little", used fondly for a younger brother, sister or child, so it feels like the shop's own little helper. Nothing else changed.
+
 ---
 
 ## Open questions (answers become decisions above)
